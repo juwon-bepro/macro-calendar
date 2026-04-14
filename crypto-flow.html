@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Flow | 코인 수급 흐름</title>
+<style>
+:root {
+  --bg:#0c0f1a;--bg2:#141828;--bg3:#1c2238;--bg4:#242a42;
+  --border:#2a3050;--border2:#353d5e;
+  --txt:#e4e8f5;--txt2:#8a94b8;--txt3:#555f80;
+  --blue:#4f8ef7;--blue2:rgba(79,142,247,.12);
+  --green:#00d09c;--green2:rgba(0,208,156,.12);
+  --red:#ff4d5e;--red2:rgba(255,77,94,.12);
+  --gold:#f5a623;--gold2:rgba(245,166,35,.12);
+  --purple:#a78bfa;--purple2:rgba(167,139,250,.12);
+  --orange:#ff9f43;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+/* ── Header ── */
+.site-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:12px;flex-wrap:wrap;}
+.hdr-left{display:flex;align-items:center;gap:14px;}
+.hdr-logo{width:38px;height:38px;background:linear-gradient(135deg,#f5a623,#ff4d5e);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.hdr-title h1{font-size:17px;font-weight:700;}
+.hdr-title p{font-size:11px;color:var(--txt3);margin-top:1px;}
+.hdr-nav{display:flex;gap:4px;margin-left:8px;}
+.nav-link{padding:5px 13px;border-radius:8px;font-size:12px;font-weight:500;color:var(--txt3);text-decoration:none;transition:all .15s;white-space:nowrap;}
+.nav-link:hover{color:var(--txt2);background:var(--bg3);}
+.nav-link.active{color:var(--gold);background:var(--gold2);}
+.hdr-right{display:flex;align-items:center;gap:14px;}
+.last-update{font-size:11px;color:var(--txt3);}
+
+/* ── Layout ── */
+.container{max-width:1200px;margin:0 auto;padding:20px;}
+
+/* ── Overview strip ── */
+.overview{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+.ov-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.ov-label{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px;}
+.ov-val{font-size:20px;font-weight:800;line-height:1;}
+.ov-sub{font-size:11px;margin-top:4px;font-weight:600;}
+
+/* ── Fear & Greed ── */
+.fg-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 22px;margin-bottom:16px;display:flex;align-items:center;gap:28px;flex-wrap:wrap;}
+.fg-gauge-wrap{position:relative;width:130px;height:70px;flex-shrink:0;}
+.fg-gauge-wrap svg{width:130px;height:70px;}
+.fg-center{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);text-align:center;}
+.fg-num{font-size:26px;font-weight:900;line-height:1;}
+.fg-lbl{font-size:10px;color:var(--txt3);white-space:nowrap;}
+.fg-info{flex:1;min-width:180px;}
+.fg-title{font-size:13px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.fg-desc{font-size:22px;font-weight:800;margin-bottom:6px;}
+.fg-hint{font-size:12px;color:var(--txt2);line-height:1.6;}
+.fg-hist{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.fg-h-item{font-size:11px;color:var(--txt3);}
+.fg-h-item b{color:var(--txt2);}
+
+/* ── Controls ── */
+.controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.period-tabs{display:flex;gap:3px;background:var(--bg3);padding:4px;border-radius:10px;border:1px solid var(--border);}
+.ptab{padding:5px 16px;border-radius:7px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;}
+.ptab.active{background:var(--bg2);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.4);}
+.refresh-btn{background:var(--bg3);border:1px solid var(--border);color:var(--txt2);padding:6px 13px;border-radius:8px;font-size:12px;cursor:pointer;transition:all .15s;font-weight:600;}
+.refresh-btn:hover{color:var(--gold);border-color:var(--gold);}
+
+/* ── Main cards ── */
+.main-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+.coin-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:22px;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s;}
+.coin-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.35);}
+.cc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.cc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.cc-icon.btc{background:linear-gradient(135deg,rgba(247,147,26,.2),rgba(247,147,26,.05));border:1px solid rgba(247,147,26,.3);}
+.cc-icon.eth{background:linear-gradient(135deg,rgba(98,126,234,.2),rgba(98,126,234,.05));border:1px solid rgba(98,126,234,.3);}
+.cc-icon.total{background:linear-gradient(135deg,rgba(0,208,156,.2),rgba(0,208,156,.05));border:1px solid rgba(0,208,156,.3);}
+.cc-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;background:var(--bg3);color:var(--txt3);}
+.cc-name{font-size:13px;font-weight:600;color:var(--txt3);margin-bottom:2px;}
+.cc-price{font-size:32px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:6px;}
+.cc-chg{font-size:16px;font-weight:800;margin-bottom:14px;}
+.cc-chg.up{color:var(--green);}
+.cc-chg.dn{color:var(--red);}
+.cc-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.cc-stat{background:var(--bg3);border-radius:8px;padding:8px 10px;}
+.cc-stat-label{font-size:10px;color:var(--txt3);display:block;margin-bottom:2px;}
+.cc-stat-val{font-size:13px;font-weight:700;}
+.cc-spark{height:50px;width:100%;}
+.spark-svg{width:100%;height:100%;}
+
+/* ── Dominance bar ── */
+.dom-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 22px;margin-bottom:18px;}
+.dom-title{font-size:12px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;}
+.dom-bar-wrap{height:22px;background:var(--bg3);border-radius:6px;overflow:hidden;display:flex;margin-bottom:10px;}
+.dom-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:width .8s ease;white-space:nowrap;overflow:hidden;}
+.dom-seg.btc{background:linear-gradient(90deg,#f7921a,#f7c41a);}
+.dom-seg.eth{background:linear-gradient(90deg,#627eea,#a78bfa);}
+.dom-seg.others{background:var(--bg4);color:var(--txt3);}
+.dom-legend{display:flex;gap:20px;flex-wrap:wrap;}
+.dom-leg{display:flex;align-items:center;gap:7px;font-size:12px;}
+.dom-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.dom-dot.btc{background:#f7921a;}
+.dom-dot.eth{background:#627eea;}
+.dom-dot.others{background:var(--bg4);border:1px solid var(--border2);}
+
+/* ── Trend panel ── */
+.trend-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 22px;margin-bottom:20px;}
+.trend-title{font-size:12px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;}
+.trend-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.tr-label{font-size:12px;font-weight:700;width:80px;flex-shrink:0;}
+.tr-track{flex:1;height:22px;background:var(--bg3);border-radius:5px;overflow:hidden;position:relative;}
+.tr-bar{height:100%;border-radius:5px;display:flex;align-items:center;padding:0 8px;min-width:4px;transition:width .8s ease;}
+.tr-bar-txt{font-size:10px;font-weight:700;color:rgba(255,255,255,.9);white-space:nowrap;}
+.tr-val{font-size:12px;font-weight:700;width:60px;text-align:right;flex-shrink:0;}
+
+/* ── Loading / Error ── */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px;gap:12px;grid-column:1/-1;}
+.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.err-box{background:var(--red2);border:1px solid rgba(255,77,94,.3);border-radius:12px;padding:20px;text-align:center;color:var(--red);}
+
+/* ── Responsive ── */
+@media(max-width:900px){.main-cards{grid-template-columns:1fr;}.overview{grid-template-columns:repeat(3,1fr);}  }
+@media(max-width:600px){.overview{grid-template-columns:1fr 1fr;}.hdr-nav{display:none;}}
+
+.up{color:var(--green);}
+.dn{color:var(--red);}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="hdr-left">
+    <div class="hdr-logo">₿</div>
+    <div class="hdr-title">
+      <h1>Crypto Flow</h1>
+      <p>코인 수급 흐름 · CoinGecko 기반 · KST 기준</p>
+    </div>
+    <nav class="hdr-nav">
+      <a href="index.html"          class="nav-link">홈</a>
+      <a href="macro-calendar.html" class="nav-link">매크로 캘린더</a>
+      <a href="sector-flow.html"    class="nav-link">섹터 수급</a>
+      <a href="crypto-flow.html"    class="nav-link active">코인 수급</a>
+    </nav>
+  </div>
+  <div class="hdr-right">
+    <span class="last-update">업데이트: <span id="lastUpdate">—</span></span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Overview -->
+  <div class="overview">
+    <div class="ov-card">
+      <span class="ov-label">전체 시가총액</span>
+      <div class="ov-val" id="ov-total-mcap">—</div>
+      <div class="ov-sub" id="ov-total-chg">—</div>
+    </div>
+    <div class="ov-card">
+      <span class="ov-label">BTC 가격</span>
+      <div class="ov-val" id="ov-btc-price">—</div>
+      <div class="ov-sub" id="ov-btc-chg">—</div>
+    </div>
+    <div class="ov-card">
+      <span class="ov-label">ETH 가격</span>
+      <div class="ov-val" id="ov-eth-price">—</div>
+      <div class="ov-sub" id="ov-eth-chg">—</div>
+    </div>
+    <div class="ov-card">
+      <span class="ov-label">BTC 도미넌스</span>
+      <div class="ov-val" id="ov-btc-dom">—</div>
+      <div class="ov-sub" style="color:var(--txt3)">시장 점유율</div>
+    </div>
+    <div class="ov-card">
+      <span class="ov-label">24H 거래량</span>
+      <div class="ov-val" id="ov-vol">—</div>
+      <div class="ov-sub" style="color:var(--txt3)">전체 시장</div>
+    </div>
+  </div>
+
+  <!-- Fear & Greed -->
+  <div class="fg-card">
+    <div class="fg-gauge-wrap">
+      <svg viewBox="0 0 130 70">
+        <!-- track -->
+        <path d="M 15 65 A 50 50 0 0 1 115 65" fill="none" stroke="#1c2238" stroke-width="12" stroke-linecap="round"/>
+        <!-- gradient arc -->
+        <defs>
+          <linearGradient id="fgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#ff4d5e"/>
+            <stop offset="25%"  stop-color="#f5a623"/>
+            <stop offset="50%"  stop-color="#f5e623"/>
+            <stop offset="75%"  stop-color="#00d09c"/>
+            <stop offset="100%" stop-color="#00ff9d"/>
+          </linearGradient>
+        </defs>
+        <path d="M 15 65 A 50 50 0 0 1 115 65" fill="none" stroke="url(#fgGrad)" stroke-width="12" stroke-linecap="round"/>
+        <!-- needle -->
+        <line id="fgNeedle" x1="65" y1="65" x2="65" y2="22" stroke="white" stroke-width="2.5" stroke-linecap="round"
+              transform="rotate(-90, 65, 65)" style="transition:transform .9s cubic-bezier(.25,.46,.45,.94)"/>
+        <circle cx="65" cy="65" r="5" fill="white"/>
+      </svg>
+      <div class="fg-center">
+        <div class="fg-num" id="fgNum">—</div>
+        <div class="fg-lbl">/ 100</div>
+      </div>
+    </div>
+    <div class="fg-info">
+      <div class="fg-title">Fear & Greed Index</div>
+      <div class="fg-desc" id="fgLabel">—</div>
+      <div class="fg-hint" id="fgHint">시장 심리를 0(극도의 공포)~100(극도의 탐욕) 척도로 나타냅니다.<br>극단값은 종종 역발상 매매 신호로 활용됩니다.</div>
+      <div class="fg-hist" id="fgHist"></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="period-tabs">
+      <button class="ptab active" data-p="1">오늘 1D</button>
+      <button class="ptab" data-p="7">주간 7D</button>
+      <button class="ptab" data-p="30">월간 30D</button>
+      <button class="ptab" data-p="90">분기 90D</button>
+    </div>
+    <button class="refresh-btn" id="refreshBtn">↻ 새로고침</button>
+  </div>
+
+  <!-- Main Coin Cards -->
+  <div class="main-cards" id="mainCards">
+    <div class="loader"><div class="spinner"></div><span style="color:var(--txt3);font-size:13px">CoinGecko 연결 중...</span></div>
+  </div>
+
+  <!-- Dominance Bar -->
+  <div class="dom-card">
+    <div class="dom-title">시장 점유율 (도미넌스)</div>
+    <div class="dom-bar-wrap">
+      <div class="dom-seg btc" id="domBtcBar" style="width:0%"></div>
+      <div class="dom-seg eth" id="domEthBar" style="width:0%"></div>
+      <div class="dom-seg others" id="domOthersBar" style="width:100%">기타</div>
+    </div>
+    <div class="dom-legend">
+      <div class="dom-leg"><span class="dom-dot btc"></span><span>비트코인 <b id="domBtcLbl">—</b></span></div>
+      <div class="dom-leg"><span class="dom-dot eth"></span><span>이더리움 <b id="domEthLbl">—</b></span></div>
+      <div class="dom-leg"><span class="dom-dot others"></span><span>알트코인 기타 <b id="domOtherLbl">—</b></span></div>
+    </div>
+  </div>
+
+  <!-- Trend Comparison -->
+  <div class="trend-card">
+    <div class="trend-title">기간 수익률 비교</div>
+    <div id="trendRows"></div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+const CG    = 'https://api.coingecko.com/api/v3';
+const FNG   = 'https://api.alternative.me/fng/?limit=4';
+const PROXY = 'https://corsproxy.io/?';
+
+let days    = 1;
+let loading = false;
+let globalData  = null;
+let priceData   = null;
+let chartCache  = {};   // `${id}-${days}` → prices[]
+let multiPeriod = {};   // id → { d1, d7, d30, d90 }
+
+// ─── Fetch helpers ───
+async function safeFetch(url, timeout = 9000) {
+  const go = async u => {
+    const r = await fetch(u, { signal: AbortSignal.timeout(timeout) });
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  };
+  try { return await go(url); } catch(_) {}
+  try { return await go(PROXY + encodeURIComponent(url)); } catch(_) {}
+  return await go(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+}
+
+// ─── Format helpers ───
+const fmt$ = v => {
+  if (v === null || v === undefined) return '—';
+  if (v >= 1e12) return '$' + (v/1e12).toFixed(2) + 'T';
+  if (v >= 1e9)  return '$' + (v/1e9).toFixed(1)  + 'B';
+  if (v >= 1e6)  return '$' + (v/1e6).toFixed(1)  + 'M';
+  if (v >= 1000) return '$' + v.toLocaleString('en-US', {maximumFractionDigits:0});
+  return '$' + v.toFixed(2);
+};
+const fmtPct = v => v == null ? '—' : (v>=0?'+':'')+v.toFixed(2)+'%';
+const chgClass = v => v >= 0 ? 'up' : 'dn';
+
+// ─── Sparkline ───
+function makeSpark(prices, color) {
+  if (!prices || prices.length < 2) return '';
+  const pts = prices.map(p => p[1]).slice(-60);
+  const mn = Math.min(...pts), mx = Math.max(...pts), rng = mx - mn || 1;
+  const W = 200, H = 50;
+  const coords = pts.map((v,i) =>
+    `${(i/(pts.length-1))*W},${H - ((v-mn)/rng)*H}`).join(' ');
+  const isUp = pts[pts.length-1] >= pts[0];
+  const fillColor = isUp ? 'rgba(0,208,156,.15)' : 'rgba(255,77,94,.15)';
+  const last = `${W},${H} 0,${H}`;
+  return `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="sg_${color.replace('#','')}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".25"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${coords} ${last}" fill="url(#sg_${color.replace('#','')})" />
+    <polyline points="${coords}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+// ─── Fear & Greed ───
+async function loadFNG() {
+  try {
+    const data = await safeFetch(FNG);
+    const arr  = data?.data || [];
+    if (!arr.length) return;
+
+    const cur = arr[0];
+    const val = parseInt(cur.value);
+
+    // Needle: 0→-90deg, 100→+90deg
+    const angle = -90 + val * 1.8;
+    document.getElementById('fgNeedle').setAttribute(
+      'transform', `rotate(${angle}, 65, 65)`);
+    document.getElementById('fgNum').textContent = val;
+
+    const labels = {
+      'Extreme Fear': {ko:'극도의 공포 😱', color:'var(--red)'},
+      'Fear':         {ko:'공포 😨',         color:'var(--orange)'},
+      'Neutral':      {ko:'중립 😐',         color:'var(--gold)'},
+      'Greed':        {ko:'탐욕 😎',         color:'var(--green)'},
+      'Extreme Greed':{ko:'극도의 탐욕 🤑', color:'#00ff9d'},
+    };
+    const info = labels[cur.value_classification] || {ko:cur.value_classification, color:'var(--txt)'};
+    const lbl  = document.getElementById('fgLabel');
+    lbl.textContent = info.ko;
+    lbl.style.color = info.color;
+    document.getElementById('fgNum').style.color = info.color;
+
+    // History chips
+    const histLabels = ['어제','1주 전','1달 전'];
+    document.getElementById('fgHist').innerHTML = arr.slice(1).map((d,i) =>
+      `<span class="fg-h-item">${histLabels[i]}: <b>${d.value} (${d.value_classification})</b></span>`
+    ).join('');
+  } catch(_) {}
+}
+
+// ─── Main data load ───
+async function loadAll() {
+  if (loading) return;
+  loading = true;
+  document.getElementById('refreshBtn').innerHTML = '<span style="display:inline-block;animation:spin .7s linear infinite">↻</span> 로딩중';
+  document.getElementById('mainCards').innerHTML =
+    `<div class="loader"><div class="spinner"></div><span style="color:var(--txt3);font-size:13px">CoinGecko 연결 중...</span></div>`;
+
+  try {
+    // 1) Global market data
+    const [globalRes, priceRes] = await Promise.all([
+      safeFetch(`${CG}/global`),
+      safeFetch(`${CG}/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`),
+    ]);
+    globalData = globalRes?.data || {};
+    priceData  = priceRes || {};
+
+    // 2) Charts for current period (BTC + ETH)
+    const chartReqs = ['bitcoin','ethereum'].map(async id => {
+      const key = `${id}-${days}`;
+      if (!chartCache[key]) {
+        const d = await safeFetch(`${CG}/coins/${id}/market_chart?vs_currency=usd&days=${days}`).catch(()=>null);
+        if (d) chartCache[key] = d.prices || [];
+      }
+    });
+
+    // 3) Multi-period change for trend panel (load lazily)
+    const mpReqs = ['bitcoin','ethereum'].map(async id => {
+      if (!multiPeriod[id]) {
+        const results = await Promise.allSettled([
+          safeFetch(`${CG}/coins/${id}/market_chart?vs_currency=usd&days=1`),
+          safeFetch(`${CG}/coins/${id}/market_chart?vs_currency=usd&days=7`),
+          safeFetch(`${CG}/coins/${id}/market_chart?vs_currency=usd&days=30`),
+          safeFetch(`${CG}/coins/${id}/market_chart?vs_currency=usd&days=90`),
+        ]);
+        const pctFrom = r => {
+          const p = r.status==='fulfilled' ? r.value?.prices : null;
+          if (!p || p.length < 2) return null;
+          return (p[p.length-1][1] - p[0][1]) / p[0][1] * 100;
+        };
+        multiPeriod[id] = { d1:pctFrom(results[0]), d7:pctFrom(results[1]), d30:pctFrom(results[2]), d90:pctFrom(results[3]) };
+      }
+    });
+
+    await Promise.all([...chartReqs, ...mpReqs]);
+
+    // 4) FNG
+    loadFNG();
+
+    renderOverview();
+    renderDominance();
+    renderCards();
+    renderTrend();
+    updateTimestamp();
+
+  } catch(err) {
+    document.getElementById('mainCards').innerHTML =
+      `<div class="err-box"><strong>데이터를 불러올 수 없습니다</strong><br><small>${err.message}</small></div>`;
+  }
+
+  loading = false;
+  document.getElementById('refreshBtn').textContent = '↻ 새로고침';
+}
+
+// ─── Render Overview ───
+function renderOverview() {
+  const g = globalData;
+  const totalMcap = g.total_market_cap?.usd;
+  const totalChg  = g.market_cap_change_percentage_24h_usd;
+  const vol24     = g.total_volume?.usd;
+
+  const btc = priceData.bitcoin   || {};
+  const eth = priceData.ethereum  || {};
+
+  document.getElementById('ov-total-mcap').textContent = fmt$(totalMcap);
+  const tcEl = document.getElementById('ov-total-chg');
+  tcEl.textContent = fmtPct(totalChg);
+  tcEl.className = 'ov-sub ' + chgClass(totalChg);
+
+  document.getElementById('ov-btc-price').textContent = fmt$(btc.usd);
+  const bcEl = document.getElementById('ov-btc-chg');
+  bcEl.textContent = fmtPct(btc.usd_24h_change);
+  bcEl.className = 'ov-sub ' + chgClass(btc.usd_24h_change);
+
+  document.getElementById('ov-eth-price').textContent = fmt$(eth.usd);
+  const ecEl = document.getElementById('ov-eth-chg');
+  ecEl.textContent = fmtPct(eth.usd_24h_change);
+  ecEl.className = 'ov-sub ' + chgClass(eth.usd_24h_change);
+
+  const btcDom = g.market_cap_percentage?.btc;
+  document.getElementById('ov-btc-dom').textContent = btcDom ? btcDom.toFixed(1)+'%' : '—';
+
+  document.getElementById('ov-vol').textContent = fmt$(vol24);
+}
+
+// ─── Render Dominance ───
+function renderDominance() {
+  const pct = globalData.market_cap_percentage || {};
+  const btcP   = pct.btc  ?? 0;
+  const ethP   = pct.eth  ?? 0;
+  const othersP= Math.max(0, 100 - btcP - ethP);
+
+  document.getElementById('domBtcBar').style.width   = btcP.toFixed(1)+'%';
+  document.getElementById('domEthBar').style.width   = ethP.toFixed(1)+'%';
+  document.getElementById('domOthersBar').style.width= othersP.toFixed(1)+'%';
+
+  document.getElementById('domBtcLbl').textContent   = btcP.toFixed(1)+'%';
+  document.getElementById('domEthLbl').textContent   = ethP.toFixed(1)+'%';
+  document.getElementById('domOtherLbl').textContent = othersP.toFixed(1)+'%';
+}
+
+// ─── Render Cards ───
+function renderCards() {
+  const btc   = priceData.bitcoin   || {};
+  const eth   = priceData.ethereum  || {};
+  const g     = globalData;
+  const totalMcap = g.total_market_cap?.usd;
+  const totalChg  = g.market_cap_change_percentage_24h_usd;
+  const vol24h    = g.total_volume?.usd;
+
+  const btcCharts = chartCache[`bitcoin-${days}`] || [];
+  const ethCharts = chartCache[`ethereum-${days}`] || [];
+
+  // Period-based change (use chart data if multi-day)
+  const periodChg = (id, fallback) => {
+    const key = `${id}-${days}`;
+    const c = chartCache[key];
+    if (c && c.length >= 2) return (c[c.length-1][1] - c[0][1]) / c[0][1] * 100;
+    return fallback ?? null;
+  };
+
+  const btcChg   = periodChg('bitcoin',  btc.usd_24h_change);
+  const ethChg   = periodChg('ethereum', eth.usd_24h_change);
+
+  const coins = [
+    {
+      id:'bitcoin', name:'Bitcoin', symbol:'BTC', icon:'₿', cls:'btc',
+      price: fmt$(btc.usd),
+      chg: btcChg,
+      mcap: fmt$(btc.usd_market_cap),
+      vol:  fmt$(btc.usd_24h_vol),
+      color:'#f7921a', charts: btcCharts,
+    },
+    {
+      id:'ethereum', name:'Ethereum', symbol:'ETH', icon:'Ξ', cls:'eth',
+      price: fmt$(eth.usd),
+      chg: ethChg,
+      mcap: fmt$(eth.usd_market_cap),
+      vol:  fmt$(eth.usd_24h_vol),
+      color:'#627eea', charts: ethCharts,
+    },
+    {
+      id:'total', name:'전체 시장', symbol:'TOTAL', icon:'🌐', cls:'total',
+      price: fmt$(totalMcap),
+      chg: totalChg,
+      mcap: fmt$(totalMcap),
+      vol:  fmt$(vol24h),
+      color:'#00d09c', charts: [],
+    },
+  ];
+
+  document.getElementById('mainCards').innerHTML = coins.map(c => `
+    <div class="coin-card">
+      <div class="cc-top">
+        <div class="cc-icon ${c.cls}">${c.icon}</div>
+        <span class="cc-badge">${c.symbol}</span>
+      </div>
+      <div class="cc-name">${c.name}</div>
+      <div class="cc-price">${c.price}</div>
+      <div class="cc-chg ${chgClass(c.chg)}">${fmtPct(c.chg)} <span style="font-size:11px;font-weight:500;color:var(--txt3)">${days===1?'24H':days+'D'}</span></div>
+      <div class="cc-stats">
+        <div class="cc-stat">
+          <span class="cc-stat-label">시가총액</span>
+          <span class="cc-stat-val">${c.mcap}</span>
+        </div>
+        <div class="cc-stat">
+          <span class="cc-stat-label">24H 거래량</span>
+          <span class="cc-stat-val">${c.vol}</span>
+        </div>
+      </div>
+      <div class="cc-spark">${makeSpark(c.charts, c.color)}</div>
+    </div>
+  `).join('');
+}
+
+// ─── Render Trend ───
+function renderTrend() {
+  const coins = [
+    { id:'bitcoin',  label:'BTC', color:'#f7921a' },
+    { id:'ethereum', label:'ETH', color:'#627eea' },
+  ];
+  const periods = [
+    { key:'d1',  label:'1D'  },
+    { key:'d7',  label:'7D'  },
+    { key:'d30', label:'30D' },
+    { key:'d90', label:'90D' },
+  ];
+
+  // max abs for bar scaling
+  const allVals = coins.flatMap(c => periods.map(p => Math.abs(multiPeriod[c.id]?.[p.key] || 0)));
+  const maxAbs  = Math.max(...allVals, 0.01);
+
+  document.getElementById('trendRows').innerHTML = coins.map(c => {
+    const mp = multiPeriod[c.id] || {};
+    return periods.map(p => {
+      const v   = mp[p.key] ?? null;
+      const w   = v !== null ? Math.max(2, Math.abs(v)/maxAbs * 70) : 2;
+      const col = v === null ? 'var(--txt3)' : v >= 0 ? 'var(--green)' : 'var(--red)';
+      const bg  = v === null ? 'var(--bg3)'  : v >= 0 ? 'rgba(0,208,156,.15)' : 'rgba(255,77,94,.15)';
+      return `<div class="trend-row">
+        <span class="tr-label" style="color:${c.color}">${c.label} ${p.label}</span>
+        <div class="tr-track">
+          <div class="tr-bar" style="width:${w}%;background:${bg};border-left:2px solid ${col}">
+            <span class="tr-bar-txt" style="color:${col}">&nbsp;</span>
+          </div>
+        </div>
+        <span class="tr-val" style="color:${col}">${fmtPct(v)}</span>
+      </div>`;
+    }).join('');
+  }).join('');
+}
+
+// ─── Timestamp ───
+function updateTimestamp() {
+  const kst = new Date(Date.now() + 9*3600000);
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('lastUpdate').textContent =
+    `${p(kst.getUTCHours())}:${p(kst.getUTCMinutes())}:${p(kst.getUTCSeconds())} KST`;
+}
+
+// ─── Events ───
+document.querySelectorAll('.ptab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    days = parseInt(btn.dataset.p);
+    // Re-render cards with new period (fetch if needed)
+    const needFetch = ['bitcoin','ethereum'].some(id => !chartCache[`${id}-${days}`]);
+    if (needFetch) loadAll(); else { renderCards(); renderTrend(); }
+  });
+});
+
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  chartCache  = {};
+  multiPeriod = {};
+  loadAll();
+});
+
+// Auto-refresh 3min
+setInterval(() => { chartCache = {}; multiPeriod = {}; loadAll(); }, 3*60*1000);
+
+loadAll();
+</script>
+</body>
+</html>

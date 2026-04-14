@@ -43,8 +43,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* ── Tools Grid ── */
 .container{max-width:1100px;margin:0 auto;padding:0 20px 80px;}
 .section-title{font-size:13px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;}
-.tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:48px;}
-@media(max-width:700px){.tools-grid{grid-template-columns:1fr;}}
+.tools-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:48px;}
+@media(max-width:900px){.tools-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.tools-grid{grid-template-columns:1fr;}}
 
 .tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:0;transition:transform .18s,box-shadow .18s,border-color .18s;position:relative;overflow:hidden;}
 .tool-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.4);border-color:var(--border2);}
@@ -124,7 +125,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <!-- Tools -->
   <div class="section-title">도구 선택</div>
-  <div class="tools-grid">
+  <div class="tools-grid" style="grid-template-columns:1fr 1fr 1fr;">
 
     <a href="macro-calendar.html" class="tool-card blue">
       <div class="tc-top">
@@ -156,6 +157,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div class="tc-feat"><span class="tc-feat-dot green"></span>거래량 스파이크 알림</div>
       </div>
       <span class="tc-btn green">수급 흐름 보기 →</span>
+    </a>
+
+    <a href="crypto-flow.html" class="tool-card" style="border-top-color:transparent">
+      <style>.tool-card.gold::before{background:linear-gradient(90deg,#f5a623,#ff4d5e);}</style>
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f5a623,#ff4d5e);border-radius:16px 16px 0 0;"></div>
+      <div class="tc-top">
+        <div class="tc-icon" style="background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);">₿</div>
+        <span class="tc-arrow">→</span>
+      </div>
+      <div class="tc-name">코인 수급 흐름</div>
+      <div class="tc-desc">비트코인·이더리움 가격과 전체 코인 시가총액, Fear & Greed 지수를 한눈에 확인합니다.</div>
+      <div class="tc-features">
+        <div class="tc-feat"><span class="tc-feat-dot" style="background:var(--gold)"></span>BTC · ETH 가격 및 변화율</div>
+        <div class="tc-feat"><span class="tc-feat-dot" style="background:var(--gold)"></span>전체 코인 시가총액</div>
+        <div class="tc-feat"><span class="tc-feat-dot" style="background:var(--gold)"></span>BTC 도미넌스 시각화</div>
+        <div class="tc-feat"><span class="tc-feat-dot" style="background:var(--gold)"></span>Fear & Greed 지수</div>
+      </div>
+      <span class="tc-btn" style="background:var(--gold);color:#0c0f1a;">코인 수급 보기 →</span>
     </a>
 
   </div>
