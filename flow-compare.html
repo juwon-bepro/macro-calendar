@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Compare | 크로스에셋 수급 비교</title>
+<style>
+:root {
+  --bg:#0c0f1a;--bg2:#141828;--bg3:#1c2238;--bg4:#242a42;
+  --border:#2a3050;--border2:#353d5e;
+  --txt:#e4e8f5;--txt2:#8a94b8;--txt3:#555f80;
+  --blue:#4f8ef7;   --blue2:rgba(79,142,247,.12);
+  --green:#00d09c;  --green2:rgba(0,208,156,.12);
+  --red:#ff4d5e;    --red2:rgba(255,77,94,.12);
+  --gold:#f5a623;   --gold2:rgba(245,166,35,.12);
+  --purple:#a78bfa; --purple2:rgba(167,139,250,.12);
+  --orange:#f7921a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+/* ── Header ── */
+.site-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:12px;flex-wrap:wrap;}
+.hdr-left{display:flex;align-items:center;gap:14px;}
+.hdr-logo{width:38px;height:38px;background:linear-gradient(135deg,#4f8ef7,#f5a623);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.hdr-title h1{font-size:17px;font-weight:700;}
+.hdr-title p{font-size:11px;color:var(--txt3);margin-top:1px;}
+.hdr-nav{display:flex;gap:4px;margin-left:8px;}
+.nav-link{padding:5px 13px;border-radius:8px;font-size:12px;font-weight:500;color:var(--txt3);text-decoration:none;transition:all .15s;white-space:nowrap;}
+.nav-link:hover{color:var(--txt2);background:var(--bg3);}
+.nav-link.active{color:var(--blue);background:var(--blue2);}
+.hdr-right{display:flex;align-items:center;gap:14px;}
+.last-update{font-size:11px;color:var(--txt3);}
+
+/* ── Layout ── */
+.container{max-width:1440px;margin:0 auto;padding:20px;}
+
+/* ── Controls ── */
+.controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.period-tabs{display:flex;gap:3px;background:var(--bg3);padding:4px;border-radius:10px;border:1px solid var(--border);}
+.ptab{padding:5px 16px;border-radius:7px;border:none;background:transparent;color:var(--txt3);cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;}
+.ptab.active{background:var(--bg2);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.4);}
+.refresh-btn{background:var(--bg3);border:1px solid var(--border);color:var(--txt2);padding:6px 13px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;transition:all .15s;}
+.refresh-btn:hover{color:var(--blue);border-color:var(--blue);}
+
+/* ── Flow Signal Banner ── */
+.signal-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px;}
+.sig-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;border-top:3px solid transparent;transition:transform .15s,box-shadow .15s;cursor:default;}
+.sig-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.sig-icon{font-size:20px;margin-bottom:6px;}
+.sig-name{font-size:11px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;}
+.sig-val{font-size:26px;font-weight:900;line-height:1;letter-spacing:-.5px;}
+.sig-sub{font-size:11px;margin-top:4px;font-weight:600;}
+.sig-rank{font-size:10px;color:var(--txt3);margin-top:6px;}
+
+/* ── Winner Banner ── */
+.winner-banner{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 22px;margin-bottom:16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.wb-label{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:2px;}
+.wb-val{font-size:18px;font-weight:800;}
+.wb-divider{width:1px;height:40px;background:var(--border);flex-shrink:0;}
+
+/* ── Unified Ranking ── */
+.rank-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 22px;margin-bottom:16px;}
+.section-title{font-size:12px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;}
+.rank-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.rr-rank{font-size:11px;color:var(--txt3);width:22px;text-align:right;flex-shrink:0;}
+.rr-icon{font-size:14px;width:22px;text-align:center;flex-shrink:0;}
+.rr-name{font-size:12px;font-weight:700;width:100px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rr-group{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;flex-shrink:0;width:62px;text-align:center;}
+.rr-track{flex:1;height:22px;background:var(--bg3);border-radius:5px;overflow:hidden;position:relative;}
+.rr-bar{height:100%;border-radius:5px;display:flex;align-items:center;padding:0 8px;min-width:3px;transition:width .8s ease;}
+.rr-bar-txt{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;}
+.rr-pct{font-size:12px;font-weight:800;width:58px;text-align:right;flex-shrink:0;}
+.rr-vol{font-size:10px;width:44px;text-align:right;flex-shrink:0;color:var(--txt3);}
+.spy-line{border-top:1px dashed var(--border2);margin:8px 0;position:relative;}
+.spy-line-lbl{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--bg2);padding:0 10px;font-size:9px;color:var(--txt3);white-space:nowrap;}
+
+/* ── Two-col detail ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 20px;}
+
+/* Group heatmap */
+.group-heatmap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.gh-card{border-radius:10px;padding:14px;transition:transform .15s;}
+.gh-card:hover{transform:translateY(-2px);}
+.gh-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.gh-icon{font-size:22px;}
+.gh-rank-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.3);}
+.gh-name{font-size:12px;font-weight:700;margin-bottom:1px;}
+.gh-en{font-size:10px;opacity:.6;margin-bottom:8px;}
+.gh-pct{font-size:28px;font-weight:900;letter-spacing:-.5px;line-height:1;}
+.gh-assets{font-size:10px;opacity:.6;margin-top:4px;}
+
+/* Flow score bars */
+.flow-score-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.fs-name{font-size:11px;font-weight:700;width:80px;flex-shrink:0;}
+.fs-track{flex:1;height:18px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+.fs-bar{height:100%;border-radius:4px;transition:width .8s ease;display:flex;align-items:center;padding:0 6px;}
+.fs-bar-txt{font-size:9px;font-weight:700;white-space:nowrap;}
+.fs-score{font-size:11px;font-weight:700;width:40px;text-align:right;flex-shrink:0;}
+
+/* ── Correlation signals ── */
+.signals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.sg-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.sg-label{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
+.sg-val{font-size:16px;font-weight:800;margin-bottom:4px;}
+.sg-desc{font-size:11px;color:var(--txt2);line-height:1.5;}
+
+/* ── Loading ── */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px;gap:12px;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin{display:inline-block;animation:spin .7s linear infinite;}
+.err-box{background:var(--red2);border:1px solid rgba(255,77,94,.3);border-radius:12px;padding:20px;color:var(--red);text-align:center;}
+
+/* ── Responsive ── */
+@media(max-width:1100px){.signal-bar{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:768px){.signal-bar{grid-template-columns:repeat(2,1fr);}.two-col{grid-template-columns:1fr;}.hdr-nav{display:none;}.group-heatmap{grid-template-columns:repeat(2,1fr);}.signals-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="hdr-left">
+    <div class="hdr-logo">⚡</div>
+    <div class="hdr-title">
+      <h1>Flow Compare</h1>
+      <p>크로스에셋 수급 비교 · 주식 · 코인 · 원자재 통합</p>
+    </div>
+    <nav class="hdr-nav">
+      <a href="index.html"          class="nav-link">홈</a>
+      <a href="macro-calendar.html" class="nav-link">매크로 캘린더</a>
+      <a href="sector-flow.html"    class="nav-link">섹터 수급</a>
+      <a href="crypto-flow.html"    class="nav-link">코인 수급</a>
+      <a href="flow-compare.html"   class="nav-link active">크로스에셋</a>
+    </nav>
+  </div>
+  <div class="hdr-right">
+    <span class="last-update">업데이트: <span id="lastUpdate">—</span></span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="period-tabs">
+      <button class="ptab active" data-p="5d">오늘 1D</button>
+      <button class="ptab" data-p="5d" data-days="5">주간 5D</button>
+      <button class="ptab" data-p="1mo">월간 1M</button>
+      <button class="ptab" data-p="3mo">분기 3M</button>
+    </div>
+    <button class="refresh-btn" id="refreshBtn">↻ 새로고침</button>
+  </div>
+
+  <!-- Winner Banner -->
+  <div class="winner-banner" id="winnerBanner" style="display:none">
+    <div>
+      <span class="wb-label">🏆 최대 수급 유입</span>
+      <div class="wb-val" id="winnerVal">—</div>
+    </div>
+    <div class="wb-divider"></div>
+    <div>
+      <span class="wb-label">📉 최대 수급 유출</span>
+      <div class="wb-val" id="loserVal">—</div>
+    </div>
+    <div class="wb-divider"></div>
+    <div>
+      <span class="wb-label">🌡️ 시장 리스크 성향</span>
+      <div class="wb-val" id="regimeVal">—</div>
+    </div>
+    <div class="wb-divider"></div>
+    <div>
+      <span class="wb-label">💰 안전자산 흐름</span>
+      <div class="wb-val" id="safeVal">—</div>
+    </div>
+  </div>
+
+  <!-- Signal Cards (group summary) -->
+  <div class="signal-bar" id="signalBar">
+    <div class="loader" style="grid-column:1/-1"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Unified Ranking -->
+  <div class="rank-wrap">
+    <div class="section-title">전체 자산 통합 순위</div>
+    <div id="unifiedRank"></div>
+  </div>
+
+  <!-- Group Heatmap + Flow Score -->
+  <div class="two-col">
+    <div class="panel">
+      <div class="section-title">그룹별 히트맵</div>
+      <div class="group-heatmap" id="groupHeatmap"></div>
+    </div>
+    <div class="panel">
+      <div class="section-title">수급 강도 스코어 (변화율 × 거래량)</div>
+      <div id="flowScores"></div>
+    </div>
+  </div>
+
+  <!-- Correlation Signals -->
+  <div class="panel" style="margin-bottom:20px">
+    <div class="section-title">크로스에셋 시그널 해석</div>
+    <div class="signals-grid" id="signalsGrid"></div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+// ─── Asset definitions ───
+const ASSETS = [
+  // 주식 성장
+  { id:'XLK',     name:'기술',       en:'Technology',      group:'stock-growth', icon:'💻' },
+  { id:'XLC',     name:'커뮤니케이션',en:'Communication',   group:'stock-growth', icon:'📡' },
+  { id:'XLY',     name:'경기소비재',  en:'Consumer Disc.',  group:'stock-growth', icon:'🛍️' },
+  { id:'XLF',     name:'금융',       en:'Financials',      group:'stock-growth', icon:'🏦' },
+  { id:'XLI',     name:'산업재',     en:'Industrials',     group:'stock-growth', icon:'🏭' },
+  { id:'XLB',     name:'소재',       en:'Materials',       group:'stock-growth', icon:'⚗️' },
+  // 주식 방어
+  { id:'XLV',     name:'헬스케어',   en:'Health Care',     group:'stock-def',    icon:'🏥' },
+  { id:'XLP',     name:'필수소비재', en:'Consumer Staples',group:'stock-def',    icon:'🧴' },
+  { id:'XLU',     name:'유틸리티',   en:'Utilities',       group:'stock-def',    icon:'⚡' },
+  { id:'XLRE',    name:'부동산',     en:'Real Estate',     group:'stock-def',    icon:'🏠' },
+  // 에너지
+  { id:'XLE',     name:'에너지',     en:'Energy',          group:'energy',       icon:'⛽' },
+  // 귀금속
+  { id:'GLD',     name:'금',         en:'Gold (GLD)',       group:'metals',       icon:'🥇' },
+  { id:'SLV',     name:'은',         en:'Silver (SLV)',     group:'metals',       icon:'🥈' },
+  { id:'GDX',     name:'금 채굴',    en:'Gold Miners',     group:'metals',       icon:'⛏️' },
+  // 코인 (Yahoo Finance 지원)
+  { id:'BTC-USD', name:'비트코인',   en:'Bitcoin',         group:'crypto',       icon:'₿'  },
+  { id:'ETH-USD', name:'이더리움',   en:'Ethereum',        group:'crypto',       icon:'Ξ'  },
+  // 채권 (안전자산 비교)
+  { id:'TLT',     name:'장기국채',   en:'20Y Treasury',    group:'bonds',        icon:'🏛️' },
+  // 벤치마크
+  { id:'SPY',     name:'S&P 500',   en:'Benchmark',       group:'benchmark',    icon:'📊' },
+];
+
+const GROUPS = [
+  { id:'stock-growth', name:'주식 성장',  en:'Growth Equities', icon:'📈', color:'#4f8ef7' },
+  { id:'stock-def',    name:'주식 방어',  en:'Defensive Equities', icon:'🛡️', color:'#a78bfa' },
+  { id:'energy',       name:'에너지',    en:'Energy',          icon:'⛽', color:'#f5a623' },
+  { id:'metals',       name:'귀금속',    en:'Precious Metals', icon:'🥇', color:'#f5c842' },
+  { id:'crypto',       name:'코인',      en:'Crypto',          icon:'₿',  color:'#f7921a' },
+  { id:'bonds',        name:'채권',      en:'Bonds',           icon:'🏛️', color:'#00d09c' },
+];
+
+// ─── State ───
+let range    = '5d';
+let use1d    = true;   // 1D mode: use regularMarketChangePercent from meta
+let td       = {};     // id → tickerData
+let loading  = false;
+
+// ─── API ───
+const YF    = 'https://query1.finance.yahoo.com';
+const PROXY = 'https://corsproxy.io/?';
+
+async function timedFetch(url, ms) {
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(tid); if (!r.ok) throw new Error(r.status); return r.json();
+  } catch(e) { clearTimeout(tid); throw e; }
+}
+async function safeFetch(url) {
+  try { return await timedFetch(url, 7000); } catch(_) {}
+  try { return await timedFetch(PROXY + encodeURIComponent(url), 12000); } catch(_) {}
+  return await timedFetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, 14000);
+}
+
+async function fetchTicker(id, rng) {
+  const url    = `${YF}/v8/finance/chart/${id}?interval=1d&range=${rng}&includePrePost=false`;
+  const data   = await safeFetch(url);
+  const res    = data?.chart?.result?.[0];
+  if (!res) throw new Error(`No data: ${id}`);
+  const meta   = res.meta || {};
+  const rawQ   = res.indicators?.quote?.[0] || {};
+  const closes = (rawQ.close  || []).filter(v => v != null);
+  const vols   = (rawQ.volume || []).filter(v => v != null);
+  const price  = meta.regularMarketPrice ?? closes[closes.length-1] ?? null;
+  const prev   = meta.previousClose ?? meta.chartPreviousClose ?? (closes.length >= 2 ? closes[closes.length-2] : null);
+  const chg1d  = (price && prev) ? ((price - prev) / prev) * 100
+               : (meta.regularMarketChangePercent ?? null);
+  const todayVol = meta.regularMarketVolume ?? (vols.length ? vols[vols.length-1] : null);
+  const histVols = vols.length > 1 ? vols.slice(0, -1) : vols;
+  const avgVol   = histVols.length ? histVols.reduce((s,v) => s+v, 0) / histVols.length : null;
+  return { id, price, change1d: chg1d, volume: todayVol, avgVol,
+    volRatio: (todayVol && avgVol) ? todayVol / avgVol : null,
+    closes };
+}
+
+// ─── Helpers ───
+const fmtPct = v => v == null ? '—' : (v>=0?'+':'')+v.toFixed(2)+'%';
+const clr    = v => v == null ? 'var(--txt2)' : v >= 0 ? 'var(--green)' : 'var(--red)';
+
+function getChange(id) {
+  const d = td[id]; if (!d) return null;
+  if (use1d) return d.change1d;
+  const c = d.closes;
+  return (c && c.length >= 2) ? ((c[c.length-1] - c[0]) / c[0]) * 100 : d.change1d;
+}
+
+function groupAvg(gid) {
+  const vals = ASSETS.filter(a => a.group === gid).map(a => getChange(a.id)).filter(v => v != null);
+  return vals.length ? vals.reduce((s,v) => s+v, 0) / vals.length : null;
+}
+
+function heatBg(pct) {
+  if (pct == null) return { bg:'var(--bg3)', fg:'var(--txt2)' };
+  if (pct >  3)   return { bg:'#004d33', fg:'#00ff9d' };
+  if (pct >  1.5) return { bg:'#003325', fg:'#00d09c' };
+  if (pct >  0.3) return { bg:'#001f18', fg:'#00b87a' };
+  if (pct >    0) return { bg:'#141e1a', fg:'#4dae8a' };
+  if (pct > -1.5) return { bg:'#2d0f18', fg:'#ff6b7a' };
+  if (pct > -3)   return { bg:'#3d0a14', fg:'#ff4d5e' };
+  return            { bg:'#55001a', fg:'#ff1a35' };
+}
+
+// ─── Render: Signal Cards ───
+function renderSignals() {
+  const sorted = GROUPS.map(g => ({ ...g, avg: groupAvg(g.id) }))
+                       .sort((a,b) => (b.avg??-999) - (a.avg??-999));
+  const spyChg = getChange('SPY') ?? 0;
+
+  document.getElementById('signalBar').innerHTML = sorted.map((g, i) => {
+    const { bg, fg } = heatBg(g.avg);
+    const rank = i === 0 ? '🥇 1위' : i === 1 ? '🥈 2위' : i === 2 ? '🥉 3위' : `${i+1}위`;
+    const alphaStyle = (g.avg != null && g.avg - spyChg >= 0) ? 'color:var(--green)' : 'color:var(--red)';
+    const alphaStr   = g.avg != null ? 'vs SPY ' + fmtPct(g.avg - spyChg) : '';
+    return `<div class="sig-card" style="background:${bg};border-top-color:${g.color}">
+      <div class="sig-icon">${g.icon}</div>
+      <div class="sig-name" style="color:${fg}">${g.name}</div>
+      <div class="sig-val"  style="color:${fg}">${fmtPct(g.avg)}</div>
+      <div class="sig-sub"  style="${alphaStyle}">${alphaStr}</div>
+      <div class="sig-rank">${rank}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Render: Winner Banner ───
+function renderBanner() {
+  const all = ASSETS.filter(a => a.group !== 'benchmark')
+                    .map(a => ({ ...a, chg: getChange(a.id) }))
+                    .filter(a => a.chg != null);
+  all.sort((a,b) => b.chg - a.chg);
+  const winner = all[0], loser = all[all.length-1];
+
+  const growthAvg  = groupAvg('stock-growth');
+  const defAvg     = groupAvg('stock-def');
+  const cryptoAvg  = groupAvg('crypto');
+  const metalsAvg  = groupAvg('metals');
+  const regime     = growthAvg != null && defAvg != null ? growthAvg - defAvg : null;
+  const safeScore  = metalsAvg != null && defAvg != null ? (metalsAvg + defAvg) / 2 : null;
+
+  document.getElementById('winnerVal').innerHTML =
+    `<span style="color:var(--green)">${winner?.icon} ${winner?.name} ${fmtPct(winner?.chg)}</span>`;
+  document.getElementById('loserVal').innerHTML  =
+    `<span style="color:var(--red)">${loser?.icon} ${loser?.name} ${fmtPct(loser?.chg)}</span>`;
+  document.getElementById('regimeVal').innerHTML =
+    regime == null ? '—' :
+    regime > 1.5   ? `<span style="color:var(--green)">Risk-On 🟢 ${fmtPct(regime)}</span>` :
+    regime < -1.5  ? `<span style="color:var(--red)">Risk-Off 🔴 ${fmtPct(regime)}</span>` :
+                     `<span style="color:var(--gold)">중립 ⚪ ${fmtPct(regime)}</span>`;
+  document.getElementById('safeVal').innerHTML =
+    safeScore == null ? '—' :
+    safeScore > 1  ? `<span style="color:var(--gold)">안전자산 강세 ${fmtPct(safeScore)}</span>` :
+    safeScore < -1 ? `<span style="color:var(--blue)">위험자산 선호 ${fmtPct(safeScore)}</span>` :
+                     `<span style="color:var(--txt2)">혼재 ${fmtPct(safeScore)}</span>`;
+
+  document.getElementById('winnerBanner').style.display = 'flex';
+}
+
+// ─── Render: Unified Ranking ───
+function renderRanking() {
+  const all = ASSETS.filter(a => a.group !== 'benchmark')
+                    .map(a => {
+                      const chg = getChange(a.id);
+                      const vr  = td[a.id]?.volRatio ?? null;
+                      const g   = GROUPS.find(g => g.id === a.group);
+                      return { ...a, chg, vr, groupColor: g?.color ?? 'var(--txt3)', groupName: g?.name ?? '' };
+                    })
+                    .sort((a,b) => (b.chg??-999) - (a.chg??-999));
+
+  const spyChg = getChange('SPY') ?? 0;
+  const maxAbs = Math.max(...all.map(a => Math.abs(a.chg??0)), 0.01);
+  const aboveSpy = all.filter(a => (a.chg??0) >= spyChg);
+  const belowSpy = all.filter(a => (a.chg??0) <  spyChg);
+
+  const mkRow = (a, i) => {
+    const isPos  = (a.chg??0) >= 0;
+    const col    = clr(a.chg);
+    const bgCol  = isPos ? 'rgba(0,208,156,.15)' : 'rgba(255,77,94,.15)';
+    const w      = Math.max(2, Math.abs(a.chg??0) / maxAbs * 70);
+    const vrStr  = a.vr != null ? a.vr.toFixed(1)+'x' : '—';
+    const vrCol  = a.vr == null ? 'var(--txt3)' : a.vr >= 2 ? 'var(--gold)' : a.vr >= 1.3 ? 'var(--purple)' : 'var(--txt3)';
+    return `<div class="rank-row">
+      <span class="rr-rank">${i+1}</span>
+      <span class="rr-icon">${a.icon}</span>
+      <span class="rr-name" style="color:${col}">${a.name}</span>
+      <span class="rr-group" style="background:${a.groupColor}22;color:${a.groupColor}">${a.groupName}</span>
+      <div class="rr-track">
+        <div class="rr-bar" style="width:${w}%;background:${bgCol};border-left:2px solid ${col}">
+          <span class="rr-bar-txt" style="color:${col}">${a.en}</span>
+        </div>
+      </div>
+      <span class="rr-pct" style="color:${col}">${fmtPct(a.chg)}</span>
+      <span class="rr-vol" style="color:${vrCol}">${vrStr}</span>
+    </div>`;
+  };
+
+  const spyRow = `<div class="spy-line">
+    <span class="spy-line-lbl">📊 SPY ${fmtPct(spyChg)} ← 기준선</span>
+  </div>`;
+
+  document.getElementById('unifiedRank').innerHTML =
+    aboveSpy.map((a,i) => mkRow(a,i)).join('') +
+    spyRow +
+    belowSpy.map((a,i) => mkRow(a, aboveSpy.length + i)).join('');
+}
+
+// ─── Render: Group Heatmap ───
+function renderGroupHeatmap() {
+  const sorted = GROUPS.map(g => ({ ...g, avg: groupAvg(g.id) }))
+                       .sort((a,b) => (b.avg??-999) - (a.avg??-999));
+  const medals = ['🥇','🥈','🥉'];
+
+  document.getElementById('groupHeatmap').innerHTML = sorted.map((g, i) => {
+    const { bg, fg } = heatBg(g.avg);
+    const assetNames = ASSETS.filter(a => a.group === g.id).map(a => a.name).join(' · ');
+    return `<div class="gh-card" style="background:${bg}">
+      <div class="gh-top">
+        <span class="gh-icon">${g.icon}</span>
+        <span class="gh-rank-badge" style="color:${fg}">${medals[i] ?? i+1+'위'}</span>
+      </div>
+      <div class="gh-name" style="color:${fg}">${g.name}</div>
+      <div class="gh-en"   style="color:${fg}">${g.en}</div>
+      <div class="gh-pct"  style="color:${fg}">${fmtPct(g.avg)}</div>
+      <div class="gh-assets" style="color:${fg}">${assetNames}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Render: Flow Scores ───
+function renderFlowScores() {
+  // Flow score = |changePercent| × volRatio × sign
+  const scores = ASSETS.filter(a => a.group !== 'benchmark').map(a => {
+    const chg  = getChange(a.id) ?? 0;
+    const vr   = td[a.id]?.volRatio ?? 1;
+    const score= chg * Math.min(vr, 3);   // cap vol ratio at 3x
+    const g    = GROUPS.find(g => g.id === a.group);
+    return { ...a, score, groupColor: g?.color ?? 'var(--txt3)' };
+  }).sort((a,b) => b.score - a.score);
+
+  const maxAbs = Math.max(...scores.map(s => Math.abs(s.score)), 0.01);
+
+  document.getElementById('flowScores').innerHTML = scores.map(s => {
+    const isPos = s.score >= 0;
+    const col   = isPos ? 'var(--green)' : 'var(--red)';
+    const bgCol = isPos ? 'rgba(0,208,156,.15)' : 'rgba(255,77,94,.15)';
+    const w     = Math.max(2, Math.abs(s.score) / maxAbs * 80);
+    return `<div class="flow-score-row">
+      <span class="fs-name" style="color:${s.groupColor}">${s.icon} ${s.name}</span>
+      <div class="fs-track">
+        <div class="fs-bar" style="width:${w}%;background:${bgCol};border-left:2px solid ${col}">
+          <span class="fs-bar-txt" style="color:${col}">${fmtPct(getChange(s.id))}</span>
+        </div>
+      </div>
+      <span class="fs-score" style="color:${col}">${s.score >= 0 ? '+' : ''}${s.score.toFixed(1)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ─── Render: Correlation Signals ───
+function renderCorrelations() {
+  const btcChg     = getChange('BTC-USD');
+  const spyChg     = getChange('SPY');
+  const gldChg     = getChange('GLD');
+  const tltChg     = getChange('TLT');
+  const growthAvg  = groupAvg('stock-growth');
+  const defAvg     = groupAvg('stock-def');
+  const cryptoAvg  = groupAvg('crypto');
+  const metalsAvg  = groupAvg('metals');
+
+  const signals = [
+    {
+      label: '코인 vs 주식 동조화',
+      val:   btcChg != null && spyChg != null ? fmtPct(btcChg - spyChg) : '—',
+      valColor: btcChg != null && spyChg != null ? clr(btcChg - spyChg) : 'var(--txt2)',
+      desc:  btcChg == null || spyChg == null ? '데이터 없음' :
+             Math.abs(btcChg - spyChg) < 1 ? '코인·주식 동반 상승 → 위험선호 동조' :
+             btcChg > spyChg + 2 ? '코인 강세 → 리스크온, 투기 자본 유입' :
+             btcChg < spyChg - 2 ? '코인 약세 → 주식 상대 강세, 기관 선호' :
+             '코인·주식 방향성 유사',
+    },
+    {
+      label: '금 vs 주식 (안전자산)',
+      val:   gldChg != null && spyChg != null ? fmtPct(gldChg - spyChg) : '—',
+      valColor: gldChg != null && spyChg != null ? clr(gldChg - spyChg) : 'var(--txt2)',
+      desc:  gldChg == null || spyChg == null ? '데이터 없음' :
+             gldChg > spyChg + 1 ? '금 강세 → 인플레·지정학 리스크 헤지 수요' :
+             gldChg < spyChg - 1 ? '주식 강세 → 성장 기대, 금 약세' :
+             '금·주식 중립 → 방향 불확실',
+    },
+    {
+      label: '성장주 vs 방어주',
+      val:   growthAvg != null && defAvg != null ? fmtPct(growthAvg - defAvg) : '—',
+      valColor: growthAvg != null && defAvg != null ? clr(growthAvg - defAvg) : 'var(--txt2)',
+      desc:  growthAvg == null || defAvg == null ? '데이터 없음' :
+             growthAvg - defAvg >  2 ? '강한 Risk-On → 성장 섹터 집중 매수' :
+             growthAvg - defAvg > 0.5 ? '소폭 Risk-On → 완만한 성장 선호' :
+             growthAvg - defAvg < -2 ? '강한 Risk-Off → 방어 섹터 피신' :
+             growthAvg - defAvg < -0.5 ? '소폭 Risk-Off → 불확실성 헤지' :
+             '성장·방어 중립 → 로테이션 관망',
+    },
+    {
+      label: '채권 vs 주식 (금리)',
+      val:   tltChg != null && spyChg != null ? fmtPct(tltChg - spyChg) : '—',
+      valColor: tltChg != null && spyChg != null ? clr(tltChg - spyChg) : 'var(--txt2)',
+      desc:  tltChg == null || spyChg == null ? '데이터 없음' :
+             tltChg > 1 && spyChg < 0 ? '채권 강세 + 주식 약세 → 경기침체 우려' :
+             tltChg < -1 && spyChg > 0 ? '채권 약세 + 주식 강세 → 금리상승, 성장기대' :
+             tltChg > 0 && spyChg > 0  ? '동반 상승 → 연준 완화 기대' :
+             '채권·주식 혼조',
+    },
+    {
+      label: '귀금속 vs 코인',
+      val:   metalsAvg != null && cryptoAvg != null ? fmtPct(metalsAvg - cryptoAvg) : '—',
+      valColor: metalsAvg != null && cryptoAvg != null ? clr(metalsAvg - cryptoAvg) : 'var(--txt2)',
+      desc:  metalsAvg == null || cryptoAvg == null ? '데이터 없음' :
+             metalsAvg > cryptoAvg + 2 ? '금·은 강세 → 전통 안전자산 선호' :
+             cryptoAvg > metalsAvg + 2 ? '코인 강세 → 디지털 자산 선호' :
+             '귀금속·코인 유사 움직임',
+    },
+    {
+      label: '에너지 vs 기술',
+      val:   (() => { const e = getChange('XLE'); const t = getChange('XLK'); return e!=null&&t!=null ? fmtPct(e-t) : '—'; })(),
+      valColor: (() => { const e = getChange('XLE'); const t = getChange('XLK'); return e!=null&&t!=null ? clr(e-t) : 'var(--txt2)'; })(),
+      desc:  (() => {
+        const e = getChange('XLE'), t = getChange('XLK');
+        if (e==null||t==null) return '데이터 없음';
+        return e-t > 2 ? '에너지 강세 → 인플레·지정학 프리미엄' :
+               t-e > 2 ? '기술 강세 → 금리안정, 성장 기대' :
+               '에너지·기술 방향 유사';
+      })(),
+    },
+  ];
+
+  document.getElementById('signalsGrid').innerHTML = signals.map(s => `
+    <div class="sg-card">
+      <div class="sg-label">${s.label}</div>
+      <div class="sg-val" style="color:${s.valColor}">${s.val}</div>
+      <div class="sg-desc">${s.desc}</div>
+    </div>`).join('');
+}
+
+// ─── Main load ───
+async function loadAll() {
+  if (loading) return;
+  loading = true;
+  document.getElementById('refreshBtn').innerHTML = '<span class="spin">↻</span> 로딩중';
+  document.getElementById('signalBar').innerHTML  =
+    '<div class="loader" style="grid-column:1/-1"><div class="spinner"></div></div>';
+
+  const results = await Promise.allSettled(
+    ASSETS.map(a => fetchTicker(a.id, range))
+  );
+  results.forEach(r => {
+    if (r.status === 'fulfilled') td[r.value.id] = r.value;
+  });
+
+  renderSignals();
+  renderBanner();
+  renderRanking();
+  renderGroupHeatmap();
+  renderFlowScores();
+  renderCorrelations();
+  updateTimestamp();
+
+  loading = false;
+  document.getElementById('refreshBtn').textContent = '↻ 새로고침';
+}
+
+function updateTimestamp() {
+  const kst = new Date(Date.now() + 9*3600000);
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('lastUpdate').textContent =
+    `${p(kst.getUTCHours())}:${p(kst.getUTCMinutes())}:${p(kst.getUTCSeconds())} KST`;
+}
+
+// ─── Period tabs ───
+document.querySelectorAll('.ptab').forEach((btn, i) => {
+  // 첫 번째 탭은 1D 모드 (5d range에서 meta 1d change 사용)
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    range  = btn.dataset.p;
+    use1d  = (i === 0);  // 첫 탭만 1D 모드
+    td     = {};
+    loadAll();
+  });
+});
+
+document.getElementById('refreshBtn').addEventListener('click', () => { td = {}; loadAll(); });
+
+setInterval(() => { td = {}; loadAll(); }, 3 * 60 * 1000);
+loadAll();
+</script>
+</body>
+</html>
