@@ -678,31 +678,38 @@ function renderTrend() {
     { id:'ethereum', label:'ETH', color:'#627eea' },
   ];
   const periods = [
-    { key:'d1',  label:'1D'  },
-    { key:'d7',  label:'7D'  },
-    { key:'d30', label:'30D' },
-    { key:'d90', label:'90D' },
+    { key:'d1',  label:'1D',  d:1  },
+    { key:'d7',  label:'7D',  d:7  },
+    { key:'d30', label:'30D', d:30 },
+    { key:'d90', label:'90D', d:90 },
   ];
 
-  // max abs for bar scaling
+  // 선택된 기간 기준으로 바 너비 스케일링
   const allVals = coins.flatMap(c => periods.map(p => Math.abs(multiPeriod[c.id]?.[p.key] || 0)));
   const maxAbs  = Math.max(...allVals, 0.01);
 
   document.getElementById('trendRows').innerHTML = coins.map(c => {
     const mp = multiPeriod[c.id] || {};
     return periods.map(p => {
+      const isActive = p.d === days;
       const v   = mp[p.key] ?? null;
       const w   = v !== null ? Math.max(2, Math.abs(v)/maxAbs * 70) : 2;
       const col = v === null ? 'var(--txt3)' : v >= 0 ? 'var(--green)' : 'var(--red)';
       const bg  = v === null ? 'var(--bg3)'  : v >= 0 ? 'rgba(0,208,156,.15)' : 'rgba(255,77,94,.15)';
-      return `<div class="trend-row">
-        <span class="tr-label" style="color:${c.color}">${c.label} ${p.label}</span>
+      // 선택된 기간: 강조 / 나머지: 흐리게
+      const rowStyle  = isActive
+        ? 'opacity:1;background:var(--bg3);border-radius:8px;padding:3px 8px;margin-bottom:6px;'
+        : 'opacity:0.35;margin-bottom:6px;';
+      const lblWeight = isActive ? '900' : '600';
+      const valWeight = isActive ? '800' : '600';
+      return `<div class="trend-row" style="${rowStyle}">
+        <span class="tr-label" style="color:${c.color};font-weight:${lblWeight}">${c.label} ${p.label}</span>
         <div class="tr-track">
           <div class="tr-bar" style="width:${w}%;background:${bg};border-left:2px solid ${col}">
             <span class="tr-bar-txt" style="color:${col}">&nbsp;</span>
           </div>
         </div>
-        <span class="tr-val" style="color:${col}">${fmtPct(v)}</span>
+        <span class="tr-val" style="color:${col};font-weight:${valWeight}">${fmtPct(v)}</span>
       </div>`;
     }).join('');
   }).join('');
