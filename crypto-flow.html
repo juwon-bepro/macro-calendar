@@ -320,7 +320,8 @@ async function fetchYF(sym, range) {
   const closes = (rawQ.close  || []).filter(v => v != null);
   const vols   = (rawQ.volume || []).filter(v => v != null);
   const price  = meta.regularMarketPrice ?? closes[closes.length-1] ?? null;
-  const prev   = meta.previousClose ?? meta.chartPreviousClose
+  // chartPreviousClose = 차트 범위 시작 직전 가격(6개월 전) → 1D 계산에 절대 사용 금지
+  const prev   = meta.previousClose
                ?? (closes.length >= 2 ? closes[closes.length-2] : null);
   const chg1d  = (price && prev) ? ((price-prev)/prev)*100
                : (meta.regularMarketChangePercent ?? null);
