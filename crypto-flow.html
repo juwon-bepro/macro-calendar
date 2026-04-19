@@ -285,6 +285,10 @@ let globalData  = {};
 let priceData   = {};
 let chartCache  = {};
 let multiPeriod = {};
+let fngData     = null;
+
+const BTC_SUPPLY = 19_860_000;
+const ETH_SUPPLY = 120_300_000;
 
 // ─── Fetch helpers ───
 async function timedFetch(url, ms) {
@@ -321,7 +325,8 @@ async function fetchYF(sym, range) {
   const chg1d  = (price && prev) ? ((price-prev)/prev)*100
                : (meta.regularMarketChangePercent ?? null);
   const vol    = meta.regularMarketVolume ?? (vols.length ? vols[vols.length-1] : null);
-  const mcap   = meta.marketCap ?? null;
+  const mcap = meta.marketCap
+             ?? (price ? price * (sym === 'BTC-USD' ? BTC_SUPPLY : ETH_SUPPLY) : null);
   // [timestamp_ms, price] 쌍으로 변환 (sparkline 호환)
   const pairs  = closes.map((p, i) => [
     ((ts[i] ?? (Date.now()/1000 - (closes.length-1-i)*86400)) * 1000), p
@@ -372,6 +377,7 @@ async function loadFNG() {
     if (!arr.length) return;
 
     const cur = arr[0];
+    fngData = cur;
     const val = parseInt(cur.value);
 
     // Needle: 0→-90deg, 100→+90deg
@@ -437,25 +443,45 @@ async function loadAll() {
       ethereum: { current_price: ethH.price, price_change_percentage_24h: ethH.chg1d, market_cap: ethH.mcap, total_volume: ethH.vol },
     };
 
-    // ── 4) 전체 시가총액·도미넌스 (CoinGecko best-effort) ──
+    // ── 4) 전체 시가총액·도미넌스 (CoinGecko → CoinCap v2 → YF 추정) ──
     try {
       const g = await safeFetch(`${CG}/global`, 12000);
       globalData = g?.data || {};
     } catch(_) {
-      const bm = btcH.mcap || 0, em = ethH.mcap || 0;
-      if (bm) {
-        const est = bm / 0.55;
-        globalData = {
-          total_market_cap: { usd: est },
-          total_volume:     { usd: (btcH.vol||0) + (ethH.vol||0) },
-          market_cap_percentage: { btc: bm/est*100, eth: em/est*100 },
-          market_cap_change_percentage_24h_usd: null,
-        };
-      } else { globalData = {}; }
+      // CoinCap v2 중간 폴백
+      try {
+        const [btcCC, ethCC] = await Promise.all([
+          safeFetch('https://api.coincap.io/v2/assets/bitcoin', 8000),
+          safeFetch('https://api.coincap.io/v2/assets/ethereum', 8000),
+        ]);
+        const btcMcap = parseFloat(btcCC?.data?.marketCapUsd) || 0;
+        const ethMcap = parseFloat(ethCC?.data?.marketCapUsd) || 0;
+        const totalEst = btcMcap > 0 ? btcMcap / 0.55 : 0;
+        if (btcMcap > 0) {
+          globalData = {
+            total_market_cap: { usd: totalEst },
+            total_volume:     { usd: parseFloat(btcCC?.data?.volumeUsd24Hr||0) + parseFloat(ethCC?.data?.volumeUsd24Hr||0) },
+            market_cap_percentage: { btc: btcMcap/totalEst*100, eth: ethMcap/totalEst*100 },
+            market_cap_change_percentage_24h_usd: parseFloat(btcCC?.data?.changePercent24Hr)||null,
+          };
+        } else { throw new Error('no data'); }
+      } catch(_2) {
+        // 최후 수단: YF 공급량 기반 추정
+        const bm = btcH.mcap || 0, em = ethH.mcap || 0;
+        if (bm) {
+          const est = bm / 0.55;
+          globalData = {
+            total_market_cap: { usd: est },
+            total_volume:     { usd: (btcH.vol||0) + (ethH.vol||0) },
+            market_cap_percentage: { btc: bm/est*100, eth: em/est*100 },
+            market_cap_change_percentage_24h_usd: null,
+          };
+        } else { globalData = {}; }
+      }
     }
 
-    // ── 5) Fear & Greed ──
-    loadFNG();
+    // ── 5) Fear & Greed (await so fngData is ready for AI summary) ──
+    await loadFNG();
 
     renderOverview();
     renderDominance();
@@ -580,19 +606,18 @@ function renderCards() {
   const btcCharts = chartCache[`bitcoin-${days}`]  || [];
   const ethCharts = chartCache[`ethereum-${days}`] || [];
 
-  // 기간별 수익률: 차트 데이터 있으면 우선, 없으면 multiPeriod 값
-  const periodChg = (id, fallback24h) => {
-    const c = chartCache[`${id}-${days}`];
-    if (c && c.length >= 2) return (c[c.length-1][1] - c[0][1]) / c[0][1] * 100;
-    if (days === 1)  return multiPeriod[id]?.d1  ?? fallback24h ?? null;
-    if (days === 7)  return multiPeriod[id]?.d7  ?? null;
-    if (days === 30) return multiPeriod[id]?.d30 ?? null;
-    if (days === 90) return multiPeriod[id]?.d90 ?? null;
-    return fallback24h ?? null;
+  // 기간별 수익률: multiPeriod 직접 사용 (차트 슬라이스 오류 방지)
+  const periodChg = (id) => {
+    const mp = multiPeriod[id] || {};
+    if (days === 1)  return mp.d1  ?? null;
+    if (days === 7)  return mp.d7  ?? null;
+    if (days === 30) return mp.d30 ?? null;
+    if (days === 90) return mp.d90 ?? null;
+    return mp.d1 ?? null;
   };
 
-  const btcChg = periodChg('bitcoin',  btc.price_change_percentage_24h);
-  const ethChg = periodChg('ethereum', eth.price_change_percentage_24h);
+  const btcChg = periodChg('bitcoin');
+  const ethChg = periodChg('ethereum');
 
   const coins = [
     {
