@@ -102,7 +102,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="hdr-logo">📰</div>
     <div class="hdr-title">
       <h1>Macro News</h1>
-      <p>거시경제 주요 뉴스 · 중요도 자동 선별 · KST 기준</p>
+      <p>거시경제 주요 뉴스 · Google News + Fed 실시간 · KST 기준</p>
     </div>
     <nav class="hdr-nav">
       <a href="index.html"          class="nav-link">홈</a>
@@ -149,7 +149,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
   <!-- News -->
   <div id="newsList">
-    <div class="loader"><div class="spinner"></div><span style="color:var(--txt3);font-size:13px">뉴스 수집 중...</span></div>
+    <div class="loader"><div class="spinner"></div><span style="color:var(--txt3);font-size:13px">Google News · Fed RSS 수집 중...</span></div>
   </div>
 
 </div>
@@ -158,26 +158,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 'use strict';
 
 // ─── RSS 소스 정의 ───
+// Reuters(2020 폐지)·CNBC·MarketWatch → Google News RSS 검색 쿼리로 교체
+// Google News RSS: 무료·항상 최신·CORS 프록시 호환·다수 언론사 통합
 const FEEDS = [
   {
-    url: 'https://feeds.reuters.com/reuters/businessNews',
-    name: 'Reuters', icon: 'R', color: '#f7921a'
+    url: 'https://news.google.com/rss/search?q=federal+reserve+fomc+interest+rate+inflation+cpi&hl=en-US&gl=US&ceid=US:en',
+    name: 'GN 연준·물가', color: '#4285f4'
   },
   {
-    url: 'https://www.cnbc.com/id/20910258/device/rss/rss.html',
-    name: 'CNBC', icon: 'C', color: '#0078d4'
+    url: 'https://news.google.com/rss/search?q=US+economy+GDP+recession+unemployment+jobs+tariff&hl=en-US&gl=US&ceid=US:en',
+    name: 'GN 경제·고용', color: '#0f9d58'
   },
   {
-    url: 'https://feeds.marketwatch.com/marketwatch/topstories/',
-    name: 'MarketWatch', icon: 'M', color: '#00d09c'
+    url: 'https://news.google.com/rss/search?q=treasury+yield+dollar+index+oil+stock+market+s%26p&hl=en-US&gl=US&ceid=US:en',
+    name: 'GN 시장·채권', color: '#db4437'
   },
   {
     url: 'https://finance.yahoo.com/news/rssindex',
-    name: 'Yahoo Finance', icon: 'Y', color: '#a78bfa'
+    name: 'Yahoo Finance', color: '#a78bfa'
   },
   {
     url: 'https://www.federalreserve.gov/feeds/press_all.xml',
-    name: 'Federal Reserve', icon: 'F', color: '#4f8ef7'
+    name: 'Federal Reserve', color: '#4f8ef7'
   },
 ];
 
@@ -255,17 +257,25 @@ function timeAgo(dateStr) {
   return `${Math.floor(h/24)}일 전`;
 }
 
-// ─── RSS 파싱 ───
+// ─── RSS 파싱 (RSS 2.0 + Atom 1.0 모두 지원) ───
 function parseRSS(xml, sourceName) {
   const doc = new DOMParser().parseFromString(xml, 'text/xml');
-  const items = doc.querySelectorAll('item');
+  // RSS 2.0 → <item>, Atom → <entry>
+  const items = doc.querySelectorAll('item, entry');
   return Array.from(items).map(item => {
     const title = item.querySelector('title')?.textContent?.trim() || '';
+    // RSS 2.0: <link> 텍스트 노드, Atom: <link href="...">
     const link  = item.querySelector('link')?.textContent?.trim()
                || item.querySelector('link')?.getAttribute('href') || '#';
-    const desc  = item.querySelector('description')?.textContent?.replace(/<[^>]+>/g,'').trim() || '';
-    const pub   = item.querySelector('pubDate')?.textContent
-               || item.querySelector('published')?.textContent || '';
+    // RSS 2.0: <description>, Atom: <summary> or <content>
+    const rawDesc = item.querySelector('description')?.textContent
+                 || item.querySelector('summary')?.textContent
+                 || item.querySelector('content')?.textContent || '';
+    const desc = rawDesc.replace(/<[^>]+>/g,'').trim();
+    // RSS 2.0: <pubDate>, Atom: <published> or <updated>
+    const pub  = item.querySelector('pubDate')?.textContent
+              || item.querySelector('published')?.textContent
+              || item.querySelector('updated')?.textContent || '';
     return { title, link, desc, pub, source: sourceName };
   }).filter(a => a.title && a.title.length > 5);
 }
@@ -304,7 +314,7 @@ async function loadNews() {
   loading = true;
   document.getElementById('refreshBtn').innerHTML = '<span class="spin">↻</span> 로딩중';
   document.getElementById('newsList').innerHTML =
-    '<div class="loader"><div class="spinner"></div><span style="color:var(--txt3);font-size:13px">RSS 피드 수집 중...</span></div>';
+    '<div class="loader"><div class="spinner"></div><span style="color:var(--txt3);font-size:13px">Google News · Fed RSS 수집 중...</span></div>';
   document.getElementById('aiSummary').style.display = 'none';
 
   const results = await Promise.allSettled(
