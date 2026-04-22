@@ -516,12 +516,6 @@ function buildSparkSVG(r) {
 // ─────────────────────────────────────────
 //  Format helpers
 // ─────────────────────────────────────────
-function fmtPrice(v) {
-  if (v >= 100000) return (v / 10000).toFixed(0) + '만원';
-  if (v >= 1000)   return v.toLocaleString('ko-KR') + '원';
-  return v.toFixed(0) + '원';
-}
-
 function fmtPct(v, decimals = 1) {
   if (v == null) return '—';
   const sign = v >= 0 ? '+' : '';
@@ -580,6 +574,7 @@ function renderCard(r) {
 //  Render all cards
 // ─────────────────────────────────────────
 function renderAll() {
+  if (isLoading) return;  // 스캔 중 정렬 변경 시 미완성 결과 렌더 방지
   const sortKey = document.getElementById('sortSel').value;
 
   const breakouts  = results.filter(r => r.isBreakout);
@@ -657,6 +652,8 @@ async function startScan() {
         if (closes) {
           const r = analyze(stock, closes);
           if (r) results.push(r);
+        } else {
+          errorCount++;  // fetchWeekly returns null on failure (doesn't throw)
         }
       } catch (e) {
         errorCount++;
@@ -695,11 +692,15 @@ async function startScan() {
 
   // Schedule next auto-refresh (3 minutes)
   if (refreshTimer) clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(() => {
+  refreshTimer = setTimeout(async () => {
+    // isLoading guard: if previous scan somehow still running, retry in 1 min
+    if (isLoading) {
+      refreshTimer = setTimeout(() => startScan(), 60 * 1000);
+      return;
+    }
     document.getElementById('autoBadge').textContent = '⏱ 갱신 중...';
-    startScan().then(() => {
-      document.getElementById('autoBadge').textContent = '⏱ 3분 자동 갱신';
-    });
+    await startScan();
+    document.getElementById('autoBadge').textContent = '⏱ 3분 자동 갱신';
   }, 3 * 60 * 1000);
 }
 
