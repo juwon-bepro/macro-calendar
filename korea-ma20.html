@@ -642,39 +642,41 @@ async function startScan() {
   const total = STOCKS.length;
   let errorCount = 0;
 
-  // Fetch stocks in batches of 5 (avoid rate limiting)
-  const BATCH = 5;
-  for (let i = 0; i < total; i += BATCH) {
-    const batch = STOCKS.slice(i, i + BATCH);
-    await Promise.all(batch.map(async stock => {
-      try {
-        const closes = await fetchWeekly(stock.s);
-        if (closes) {
-          const r = analyze(stock, closes);
-          if (r) results.push(r);
-        } else {
-          errorCount++;  // fetchWeekly returns null on failure (doesn't throw)
+  try {
+    // Fetch stocks in batches of 5 (avoid rate limiting)
+    const BATCH = 5;
+    for (let i = 0; i < total; i += BATCH) {
+      const batch = STOCKS.slice(i, i + BATCH);
+      await Promise.all(batch.map(async stock => {
+        try {
+          const closes = await fetchWeekly(stock.s);
+          if (closes) {
+            const r = analyze(stock, closes);
+            if (r) results.push(r);
+          } else {
+            errorCount++;  // fetchWeekly returns null on failure (doesn't throw)
+          }
+        } catch (e) {
+          errorCount++;
+        } finally {
+          loadedCount++;
+          const pct = Math.round((loadedCount / total) * 100);
+          document.getElementById('progressFill').style.width   = pct + '%';
+          document.getElementById('progressPct').textContent    = pct + '%';
+          document.getElementById('progressDetail').textContent =
+            `${loadedCount} / ${total} 종목 처리 완료`;
         }
-      } catch (e) {
-        errorCount++;
-      } finally {
-        loadedCount++;
-        const pct = Math.round((loadedCount / total) * 100);
-        document.getElementById('progressFill').style.width   = pct + '%';
-        document.getElementById('progressPct').textContent    = pct + '%';
-        document.getElementById('progressDetail').textContent =
-          `${loadedCount} / ${total} 종목 처리 완료`;
-      }
-    }));
-    // Small delay between batches
-    if (i + BATCH < total) await new Promise(r => setTimeout(r, 200));
+      }));
+      // Small delay between batches
+      if (i + BATCH < total) await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  } finally {
+    // 예외 발생 여부와 무관하게 isLoading 해제 및 UI 복구
+    isLoading = false;
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('refreshBtn').innerHTML  = '🔄 새로고침';
+    document.getElementById('refreshBtn').disabled   = false;
   }
-
-  // Done
-  isLoading = false;
-  document.getElementById('progressWrap').style.display = 'none';
-  document.getElementById('refreshBtn').innerHTML  = '🔄 새로고침';
-  document.getElementById('refreshBtn').disabled   = false;
 
   const now = new Date();
   document.getElementById('lastUpdate').textContent =
