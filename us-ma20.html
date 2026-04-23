@@ -442,7 +442,6 @@ function analyze(stock, closes) {
   }
 
   const last = n - 1;
-  if (ma20[last] == null) return null;
 
   let weeksAbove = 0;
   for (let i = last; i >= 19; i--) {
@@ -453,9 +452,7 @@ function analyze(stock, closes) {
   const price   = closes[last];
   const ma20Val = ma20[last];
   const pctVsMa = ((price - ma20Val) / ma20Val) * 100;
-  const weekChg = closes[last - 1] != null
-    ? ((price - closes[last - 1]) / closes[last - 1]) * 100
-    : null;
+  const weekChg = ((price - closes[last - 1]) / closes[last - 1]) * 100;
 
   return {
     ...stock,
@@ -534,8 +531,7 @@ function pctColor(v) {
 }
 
 function fmtUSD(v) {
-  if (v >= 1000) return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return '$' + v.toFixed(2);
+  return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function yahooLink(symbol) {
@@ -671,8 +667,9 @@ async function startScan() {
   } finally {
     isLoading = false;
     document.getElementById('progressWrap').style.display = 'none';
-    document.getElementById('refreshBtn').innerHTML = '🔄 새로고침';
-    document.getElementById('refreshBtn').disabled  = false;
+    const btn = document.getElementById('refreshBtn');
+    btn.innerHTML = '🔄 새로고침';
+    btn.disabled  = false;
   }
 
   const now = new Date();

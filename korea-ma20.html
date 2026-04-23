@@ -416,9 +416,7 @@ async function fetchWeekly(symbol) {
   try {
     const result = data.chart.result[0];
     const quotes = result.indicators.quote[0];
-    const rawClose = quotes.close;
-    // Filter nulls (keep only valid weekly closes)
-    const closes = rawClose.filter(v => v != null && !isNaN(v));
+    const closes = quotes.close.filter(v => v != null && !isNaN(v));
     if (closes.length < 22) return null;
     return closes;
   } catch (e) {
@@ -442,7 +440,6 @@ function analyze(stock, closes) {
   }
 
   const last = n - 1;
-  if (ma20[last] == null) return null;
 
   // Count consecutive weeks above MA20 from most recent back
   let weeksAbove = 0;
@@ -454,7 +451,7 @@ function analyze(stock, closes) {
   const price    = closes[last];
   const ma20Val  = ma20[last];
   const pctVsMa  = ((price - ma20Val) / ma20Val) * 100;
-  const weekChg  = closes[last - 1] != null ? ((price - closes[last - 1]) / closes[last - 1]) * 100 : null;
+  const weekChg  = ((price - closes[last - 1]) / closes[last - 1]) * 100;
 
   return {
     ...stock,
@@ -508,8 +505,7 @@ function buildSparkSVG(r) {
   const areaPath = pricePath +
     `L${xOf(n-1).toFixed(1)},${H} L${xOf(0).toFixed(1)},${H} Z`;
 
-  const isUp = r.pctVsMa >= 0;
-  const lineColor = isUp ? '#00d09c' : '#ff4d5e';
+  const lineColor = r.pctVsMa >= 0 ? '#00d09c' : '#ff4d5e';
   const fillId = `fill_${r.s.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
   return `<svg class="sc-spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
@@ -534,7 +530,7 @@ function fmtPct(v, decimals = 1) {
   return sign + v.toFixed(decimals) + '%';
 }
 
-function pctClass(v) {
+function pctColor(v) {
   return v == null ? '' : (v >= 0 ? 'style="color:var(--green)"' : 'style="color:var(--red)"');
 }
 
@@ -569,11 +565,11 @@ function renderCard(r) {
     <div class="sc-price">₩${r.price.toLocaleString('ko-KR')}</div>
     <div class="sc-metrics">
       <div class="sc-metric">
-        <span class="sc-metric-val" ${pctClass(r.weekChg)}>${fmtPct(r.weekChg)}</span>
+        <span class="sc-metric-val" ${pctColor(r.weekChg)}>${fmtPct(r.weekChg)}</span>
         <span class="sc-metric-lbl">주간 등락</span>
       </div>
       <div class="sc-metric">
-        <span class="sc-metric-val" ${pctClass(r.pctVsMa)}>${fmtPct(r.pctVsMa)}</span>
+        <span class="sc-metric-val" ${pctColor(r.pctVsMa)}>${fmtPct(r.pctVsMa)}</span>
         <span class="sc-metric-lbl">MA괴리율</span>
       </div>
     </div>
@@ -613,21 +609,13 @@ function renderAll() {
   document.getElementById('countBreakout').textContent  = breakouts.length + '종목';
   document.getElementById('countConfirmed').textContent = confirmed.length + '종목';
 
-  // Render breakouts
-  const lb = document.getElementById('listBreakout');
-  if (breakouts.length === 0) {
-    lb.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">이번 주 신규 돌파 종목이 없습니다</div></div>`;
-  } else {
-    lb.innerHTML = breakouts.map(renderCard).join('');
-  }
+  document.getElementById('listBreakout').innerHTML = breakouts.length === 0
+    ? `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">이번 주 신규 돌파 종목이 없습니다</div></div>`
+    : breakouts.map(renderCard).join('');
 
-  // Render confirmed
-  const lc = document.getElementById('listConfirmed');
-  if (confirmed.length === 0) {
-    lc.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">돌파 후 지지 중인 종목이 없습니다</div></div>`;
-  } else {
-    lc.innerHTML = confirmed.map(renderCard).join('');
-  }
+  document.getElementById('listConfirmed').innerHTML = confirmed.length === 0
+    ? `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">돌파 후 지지 중인 종목이 없습니다</div></div>`
+    : confirmed.map(renderCard).join('');
 }
 
 // ─────────────────────────────────────────
@@ -689,8 +677,9 @@ async function startScan() {
     // 예외 발생 여부와 무관하게 isLoading 해제 및 UI 복구
     isLoading = false;
     document.getElementById('progressWrap').style.display = 'none';
-    document.getElementById('refreshBtn').innerHTML  = '🔄 새로고침';
-    document.getElementById('refreshBtn').disabled   = false;
+    const btn = document.getElementById('refreshBtn');
+    btn.innerHTML = '🔄 새로고침';
+    btn.disabled  = false;
   }
 
   const now = new Date();
