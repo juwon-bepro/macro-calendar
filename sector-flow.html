@@ -479,8 +479,8 @@ async function fetchTicker(sym, range) {
 
   const meta   = res.meta || {};
   const rawQ   = res.indicators?.quote?.[0] || {};
-  const closes = (rawQ.close  || []).map((v,i) => v ?? null).filter(v => v !== null);
-  const vols   = (rawQ.volume || []).map((v,i) => v ?? null).filter(v => v !== null);
+  const closes = (rawQ.close  || []).filter(v => v != null);
+  const vols   = (rawQ.volume || []).filter(v => v != null);
 
   // 현재가: meta 우선, 없으면 마지막 종가
   const price  = meta.regularMarketPrice ?? closes[closes.length - 1] ?? null;
@@ -502,7 +502,7 @@ async function fetchTicker(sym, range) {
     change1d: chg1d,
     volume:   todayVol,
     avgVol,
-    volRatio: (todayVol && avgVol) ? todayVol / avgVol : null,
+    volRatio: (todayVol != null && avgVol != null && avgVol !== 0) ? todayVol / avgVol : null,
     hi52:     meta.fiftyTwoWeekHigh  ?? null,
     lo52:     meta.fiftyTwoWeekLow   ?? null,
     closes,   // 이력 종가 (스파크라인 + 기간별 수익률 계산용)
@@ -849,26 +849,28 @@ async function loadAll(p) {
     }
   });
 
-  if (successCount === 0) {
-    document.getElementById('heatmap').innerHTML =
-      `<div class="err-box">
-        <strong>데이터를 불러올 수 없습니다</strong>
-        <small>Yahoo Finance API 및 CORS 프록시 모두 실패했습니다.<br>잠시 후 새로고침 해주세요.</small>
-      </div>`;
-  } else {
-    renderRegime();
-    renderAlerts();
-    renderHeatmap();
-    renderRanking();
-    renderRotation();
-    renderTable();
-    generateAISummary();
-    updateMarketStatus();
-    updateTimestamp();
+  try {
+    if (successCount === 0) {
+      document.getElementById('heatmap').innerHTML =
+        `<div class="err-box">
+          <strong>데이터를 불러올 수 없습니다</strong>
+          <small>Yahoo Finance API 및 CORS 프록시 모두 실패했습니다.<br>잠시 후 새로고침 해주세요.</small>
+        </div>`;
+    } else {
+      renderRegime();
+      renderAlerts();
+      renderHeatmap();
+      renderRanking();
+      renderRotation();
+      renderTable();
+      generateAISummary();
+      updateMarketStatus();
+      updateTimestamp();
+    }
+  } finally {
+    loading = false;
+    document.getElementById('refreshBtn').textContent = '↻ 새로고침';
   }
-
-  loading = false;
-  document.getElementById('refreshBtn').textContent = '↻ 새로고침';
 }
 
 // ─── AI 요약 ───

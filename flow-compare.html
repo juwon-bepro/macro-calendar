@@ -309,7 +309,7 @@ async function fetchTicker(id, rng) {
   const histVols = vols.length > 1 ? vols.slice(0, -1) : vols;
   const avgVol   = histVols.length ? histVols.reduce((s,v) => s+v, 0) / histVols.length : null;
   return { id, price, change1d: chg1d, volume: todayVol, avgVol,
-    volRatio: (todayVol && avgVol) ? todayVol / avgVol : null,
+    volRatio: (todayVol != null && avgVol != null && avgVol !== 0) ? todayVol / avgVol : null,
     closes };
 }
 
