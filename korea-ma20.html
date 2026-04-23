@@ -460,12 +460,17 @@ function analyze(stock, closes, currentPrice = null) {
     else break;
   }
 
-  // closes[last] = last completed Friday close (current week stripped in fetchWeekly)
-  // currentPrice = meta.regularMarketPrice = live intraday price
   const price    = currentPrice ?? closes[last];
   const ma20Val  = ma20[last];
   const pctVsMa  = ((price - ma20Val) / ma20Val) * 100;
-  const weekChg  = ((price - closes[last]) / closes[last]) * 100;
+  // currentPrice vs closes[last] = this week's move vs last completed Friday.
+  // Fallback (stale proxy cache or null price): compare the two most recent
+  // completed weekly closes so we never show 0% due to equal reference values.
+  const weekChg  = (currentPrice != null && currentPrice !== closes[last])
+    ? ((currentPrice - closes[last]) / closes[last]) * 100
+    : closes.length >= 2
+      ? ((closes[last] - closes[last - 1]) / closes[last - 1]) * 100
+      : null;
 
   return {
     ...stock,
