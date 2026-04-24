@@ -33,9 +33,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* ── GAME SCREEN ── */
 #gameScreen{justify-content:center;}
 #arenaWrap{position:relative;margin-top:58px;touch-action:none;cursor:crosshair;}
-#seoulSvg{display:block;border-radius:16px;overflow:hidden;}
-#curtainCvs{position:absolute;top:0;left:0;border-radius:16px;pointer-events:none;z-index:4;}
-#dartCvs{position:absolute;top:0;left:0;z-index:6;cursor:crosshair;}
+#seoulSvg{display:block;border-radius:16px;overflow:hidden;max-width:100%;}
+#curtainCvs{position:absolute;top:0;left:0;border-radius:16px;pointer-events:none;z-index:4;max-width:100%;}
+#dartCvs{position:absolute;top:0;left:0;z-index:6;cursor:crosshair;max-width:100%;}
 #guideTxt{position:absolute;bottom:-44px;left:0;right:0;text-align:center;font-size:12px;color:var(--txt3);pointer-events:none;transition:opacity .3s;}
 #guideTxt span{display:inline-block;animation:bob 1.8s ease-in-out infinite;}
 @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
@@ -203,19 +203,31 @@ let curtainProg = 0; // 0=fully covered, 1=fully revealed
 /* ══════════════════════════════════════════
    INIT
 ══════════════════════════════════════════ */
+function applyArenaSize() {
+  const pad = 16;
+  const dispW = Math.min(W, window.innerWidth - pad);
+  const dispH = Math.round(dispW * H / W);
+  const svg = document.getElementById('seoulSvg');
+  svg.setAttribute('width', dispW);
+  svg.setAttribute('height', dispH);
+  ['curtainCvs','dartCvs'].forEach(id => {
+    const c = document.getElementById(id);
+    c.style.width = dispW + 'px';
+    c.style.height = dispH + 'px';
+  });
+}
+
 (function init() {
   const svg = document.getElementById('seoulSvg');
-  const arena = document.getElementById('arenaWrap');
-  // Size SVG
+  // Set internal resolution
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('width', W);
-  svg.setAttribute('height', H);
-  // Size canvases
+  // Size canvases (internal resolution fixed)
   ['curtainCvs','dartCvs'].forEach(id => {
     const c = document.getElementById(id);
     c.width = W; c.height = H;
-    c.style.width = W+'px'; c.style.height = H+'px';
   });
+  applyArenaSize();
+  window.addEventListener('resize', applyArenaSize);
   buildMap();
   drawCurtain(0);
   drawDart(DART_HOME.x, DART_HOME.y, -90, false);
@@ -448,7 +460,9 @@ const MAX_PULL = 130;
 
 function getXY(e) {
   const r = document.getElementById('dartCvs').getBoundingClientRect();
-  return {x: e.clientX - r.left, y: e.clientY - r.top};
+  const scaleX = W / r.width;
+  const scaleY = H / r.height;
+  return {x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleY};
 }
 
 function onDown(e) {
