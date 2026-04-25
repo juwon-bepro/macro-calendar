@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScriptMarket | 트레이딩 지표 마켓플레이스</title>
+<style>
+:root {
+  --bg:#0c0f1a;--bg2:#141828;--bg3:#1c2238;--bg4:#242a42;
+  --border:#2a3050;--border2:#353d5e;
+  --txt:#e4e8f5;--txt2:#8a94b8;--txt3:#555f80;
+  --blue:#4f8ef7;--blue2:rgba(79,142,247,.12);
+  --green:#00d09c;--green2:rgba(0,208,156,.12);
+  --red:#ff4d5e;--red2:rgba(255,77,94,.12);
+  --gold:#f5a623;--gold2:rgba(245,166,35,.12);
+  --purple:#a78bfa;--purple2:rgba(167,139,250,.12);
+  --cyan:#22d3ee;--cyan2:rgba(34,211,238,.12);
+  --orange:#fb923c;--orange2:rgba(251,146,60,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;border:none;background:none;color:inherit;font-family:inherit;}
+
+/* ── HEADER ── */
+.site-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.hdr-left{display:flex;align-items:center;gap:12px;}
+.back-link{font-size:12px;color:var(--txt3);padding:5px 10px;border:1px solid var(--border);border-radius:8px;transition:all .15s;}
+.back-link:hover{color:var(--txt2);border-color:var(--border2);}
+.hdr-logo{width:36px;height:36px;background:linear-gradient(135deg,#4f8ef7,#00d09c);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.hdr-brand h1{font-size:16px;font-weight:800;letter-spacing:-.3px;}
+.hdr-brand p{font-size:10px;color:var(--txt3);margin-top:1px;}
+.sell-btn{background:var(--green);color:#0c0f1a;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;transition:opacity .15s;}
+.sell-btn:hover{opacity:.85;}
+
+/* ── HERO ── */
+.hero{padding:56px 24px 40px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(79,142,247,.07) 0%,transparent 70%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blue2);border:1px solid rgba(79,142,247,.3);color:var(--blue);padding:4px 14px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:18px;}
+.hero h2{font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1.2;margin-bottom:12px;}
+.g1{background:linear-gradient(90deg,#4f8ef7,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.g2{background:linear-gradient(90deg,#00d09c,#4f8ef7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-sub{font-size:15px;color:var(--txt2);max-width:480px;margin:0 auto 32px;line-height:1.7;}
+.hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;margin-bottom:36px;}
+.hs{text-align:center;}
+.hs-val{font-size:26px;font-weight:800;display:block;}
+.hs-label{font-size:11px;color:var(--txt3);margin-top:2px;}
+.main-search-wrap{max-width:560px;margin:0 auto;position:relative;}
+.main-search{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:14px 120px 14px 48px;font-size:15px;color:var(--txt);outline:none;transition:border-color .2s;}
+.main-search:focus{border-color:var(--blue);}
+.main-search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+.main-search-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--blue);color:#fff;padding:7px 18px;border-radius:9px;font-size:13px;font-weight:700;transition:opacity .15s;}
+.main-search-btn:hover{opacity:.85;}
+
+/* ── CONTAINER ── */
+.container{max-width:1200px;margin:0 auto;padding:0 24px 80px;}
+
+/* ── FILTERS ── */
+.filter-section{padding:24px 0 20px;}
+.filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.filter-label{font-size:11px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;min-width:52px;}
+.platform-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+.ptab{padding:5px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--txt2);transition:all .15s;cursor:pointer;background:none;}
+.ptab:hover{border-color:var(--border2);color:var(--txt);}
+.ptab.active{background:var(--blue2);border-color:rgba(79,142,247,.5);color:var(--blue);}
+.ptab.tv.active{background:var(--cyan2);border-color:rgba(34,211,238,.5);color:var(--cyan);}
+.ptab.mt.active{background:var(--purple2);border-color:rgba(167,139,250,.5);color:var(--purple);}
+.filter-row2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.fselect{padding:6px 28px 6px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--txt2);background:var(--bg3);appearance:none;cursor:pointer;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555f80'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+.fselect:focus{border-color:var(--blue);}
+.results-info{font-size:12px;color:var(--txt3);margin-left:auto;}
+.results-info strong{color:var(--txt2);}
+
+/* ── SECTION HEADER ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:13px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;}
+
+/* ── FEATURED ROW ── */
+.featured-row{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;margin-bottom:36px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.featured-row::-webkit-scrollbar{height:4px;}
+.featured-row::-webkit-scrollbar-thumb{background:var(--border);}
+
+/* ── CARD BASE ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;position:relative;overflow:hidden;}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.4);border-color:var(--border2);}
+.card-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0;}
+
+/* ── FEATURED CARD ── */
+.featured-card{width:280px;flex-shrink:0;}
+.featured-card .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.featured-card .card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.card-price{font-size:17px;font-weight:800;}
+.card-price.free{color:var(--green);}
+.card-name{font-size:15px;font-weight:700;margin-bottom:5px;line-height:1.3;}
+.card-desc{font-size:12px;color:var(--txt2);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-rating{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--txt2);}
+.stars{color:var(--gold);letter-spacing:-1px;}
+.card-seller-sm{font-size:11px;color:var(--txt3);}
+
+/* ── GRID CARD ── */
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:1000px){.cards-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.cards-grid{grid-template-columns:1fr;}}
+.grid-card .gc-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;}
+.grid-card .gc-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.grid-card .gc-meta{flex:1;min-width:0;}
+.grid-card .gc-name{font-size:16px;font-weight:700;margin-bottom:3px;line-height:1.3;}
+.grid-card .gc-seller{font-size:11px;color:var(--txt3);}
+.ptags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+.ptag{padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;}
+.ptag.tv{background:var(--cyan2);color:var(--cyan);border:1px solid rgba(34,211,238,.3);}
+.ptag.mt4{background:var(--purple2);color:var(--purple);border:1px solid rgba(167,139,250,.3);}
+.ptag.mt5{background:rgba(167,139,250,.08);color:var(--purple);border:1px solid rgba(167,139,250,.2);}
+.ptag.ct{background:var(--orange2);color:var(--orange);border:1px solid rgba(251,146,60,.3);}
+.ptag.nt{background:var(--gold2);color:var(--gold);border:1px solid rgba(245,166,35,.3);}
+.cat-tag{padding:2px 7px;border-radius:5px;font-size:10px;font-weight:600;background:var(--bg4);color:var(--txt2);border:1px solid var(--border);}
+.gc-desc{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.gc-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.gc-price{font-size:19px;font-weight:800;}
+.gc-price.free{color:var(--green);}
+.card-buy{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;background:var(--blue2);color:var(--blue);border:1px solid rgba(79,142,247,.3);transition:all .15s;flex-shrink:0;}
+.card-buy:hover{background:var(--blue);color:#fff;}
+.card-buy.free{background:var(--green2);color:var(--green);border-color:rgba(0,208,156,.3);}
+.card-buy.free:hover{background:var(--green);color:#0c0f1a;}
+.badge-new{position:absolute;top:14px;right:14px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.3px;}
+.badge-hot{position:absolute;top:14px;right:14px;background:var(--gold);color:#0c0f1a;font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.3px;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;max-width:760px;width:100%;max-height:90vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;transform:translateY(20px);transition:transform .2s;}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-box::-webkit-scrollbar{width:5px;}
+.modal-box::-webkit-scrollbar-thumb{background:var(--border);}
+.modal-hdr{padding:24px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.modal-close{width:32px;height:32px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--txt3);transition:all .15s;flex-shrink:0;}
+.modal-close:hover{color:var(--txt);border-color:var(--border2);}
+.modal-body{padding:20px 24px 28px;}
+.modal-top{display:flex;align-items:flex-start;gap:14px;}
+.m-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+.m-info h3{font-size:21px;font-weight:800;margin-bottom:4px;}
+.m-seller{font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.seller-badge{background:var(--gold2);color:var(--gold);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;border:1px solid rgba(245,166,35,.3);}
+.preview-ph{background:var(--bg3);border:1px solid var(--border);border-radius:12px;height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;margin:16px 0;color:var(--txt3);}
+.preview-ph .ph-icon{font-size:36px;}
+.preview-ph p{font-size:13px;}
+.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;}
+.mstat{text-align:center;}
+.mstat-val{font-size:18px;font-weight:800;display:block;}
+.mstat-lbl{font-size:10px;color:var(--txt3);margin-top:2px;text-transform:uppercase;letter-spacing:.4px;}
+.sec-title{font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.m-desc{font-size:14px;color:var(--txt2);line-height:1.7;margin-bottom:20px;}
+.feat-list{display:flex;flex-direction:column;gap:7px;margin-bottom:20px;}
+.feat-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt2);}
+.feat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.tag-list{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.tag-chip{background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--txt2);}
+.review-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+.review-item{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.review-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.review-author{font-size:12px;font-weight:700;}
+.review-meta{display:flex;align-items:center;gap:8px;}
+.review-stars{font-size:11px;color:var(--gold);}
+.review-date{font-size:11px;color:var(--txt3);}
+.review-text{font-size:13px;color:var(--txt2);line-height:1.5;}
+.buy-box{background:var(--bg3);border:1px solid var(--border2);border-radius:14px;padding:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.buy-price{font-size:28px;font-weight:800;}
+.buy-price.free{color:var(--green);}
+.buy-sub{font-size:12px;color:var(--txt3);margin-top:3px;}
+.buy-actions{display:flex;gap:10px;}
+.btn-primary{padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;background:var(--blue);color:#fff;transition:opacity .15s;}
+.btn-primary:hover{opacity:.85;}
+.btn-primary.free{background:var(--green);color:#0c0f1a;}
+.btn-secondary{padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;background:var(--bg4);color:var(--txt2);border:1px solid var(--border);transition:all .15s;}
+.btn-secondary:hover{border-color:var(--border2);color:var(--txt);}
+
+/* ── SELL MODAL ── */
+.sell-box{max-width:580px;}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.4px;}
+.form-input{width:100%;padding:10px 12px;border-radius:10px;font-size:14px;background:var(--bg3);border:1px solid var(--border);color:var(--txt);outline:none;transition:border-color .15s;font-family:inherit;}
+.form-input:focus{border-color:var(--blue);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-textarea{min-height:100px;resize:vertical;}
+.price-wrap{position:relative;}
+.price-sym{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--txt3);font-weight:700;pointer-events:none;}
+.price-wrap .form-input{padding-left:32px;}
+.form-hint{font-size:11px;color:var(--txt3);margin-top:4px;}
+.pcheck-row{display:flex;gap:8px;flex-wrap:wrap;}
+.pcheck{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;transition:all .15s;user-select:none;}
+.pcheck input{accent-color:var(--blue);}
+.pcheck.on{border-color:rgba(79,142,247,.5);background:var(--blue2);color:var(--blue);}
+.form-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+
+/* ── BECOME SELLER ── */
+.become-seller{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border2);border-radius:20px;padding:48px;text-align:center;margin-top:48px;}
+.become-seller h3{font-size:24px;font-weight:800;margin-bottom:10px;}
+.become-seller p{font-size:14px;color:var(--txt2);margin-bottom:28px;line-height:1.7;max-width:480px;margin-left:auto;margin-right:auto;}
+.bs-features{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;}
+.bsf{text-align:center;}
+.bsf-icon{font-size:28px;display:block;margin-bottom:6px;}
+.bsf-lbl{font-size:12px;color:var(--txt2);}
+
+/* ── NO RESULTS ── */
+.no-results{text-align:center;padding:60px 20px;color:var(--txt3);}
+.no-results .nr-icon{font-size:48px;display:block;margin-bottom:12px;}
+.no-results p{font-size:15px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:12px 20px;font-size:14px;font-weight:600;z-index:1000;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── FOOTER ── */
+.footer{border-top:1px solid var(--border);padding:24px 20px;text-align:center;color:var(--txt3);font-size:12px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="hdr-left">
+    <a href="index.html" class="back-link">← Macro Hub</a>
+    <div class="hdr-logo">📈</div>
+    <div class="hdr-brand">
+      <h1>ScriptMarket</h1>
+      <p>트레이딩 지표 마켓플레이스</p>
+    </div>
+  </div>
+  <button class="sell-btn" onclick="openSellModal()">+ 지표 등록하기</button>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">✨ 트레이더가 만든, 트레이더를 위한 지표</div>
+  <h2>나만의 <span class="g1">트레이딩 지표</span>를<br>사고팔고 <span class="g2">공유</span>하세요</h2>
+  <p class="hero-sub">TradingView, MT4/5 등 다양한 플랫폼의 커스텀 지표를 거래하는 전문 마켓플레이스입니다.</p>
+  <div class="hero-stats">
+    <div class="hs"><span class="hs-val" style="color:var(--blue)">248</span><span class="hs-label">등록 지표</span></div>
+    <div class="hs"><span class="hs-val" style="color:var(--green)">92</span><span class="hs-label">활성 판매자</span></div>
+    <div class="hs"><span class="hs-val" style="color:var(--gold)">1,340+</span><span class="hs-label">총 거래</span></div>
+    <div class="hs"><span class="hs-val" style="color:var(--purple)">61</span><span class="hs-label">무료 공개</span></div>
+  </div>
+  <div class="main-search-wrap">
+    <span class="main-search-icon">🔍</span>
+    <input class="main-search" type="text" placeholder="지표 이름, 기능, 플랫폼 검색..." id="heroSearch" oninput="handleSearch(this.value)">
+    <button class="main-search-btn">검색</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+
+  <!-- Filters -->
+  <div class="filter-section">
+    <div class="filter-row">
+      <span class="filter-label">플랫폼</span>
+      <div class="platform-tabs">
+        <button class="ptab active" onclick="setPlatform('all',this)">전체</button>
+        <button class="ptab tv" onclick="setPlatform('TradingView',this)">TradingView</button>
+        <button class="ptab mt" onclick="setPlatform('MT4',this)">MT4</button>
+        <button class="ptab mt" onclick="setPlatform('MT5',this)">MT5</button>
+        <button class="ptab" onclick="setPlatform('cTrader',this)">cTrader</button>
+        <button class="ptab" onclick="setPlatform('NinjaTrader',this)">NinjaTrader</button>
+      </div>
+    </div>
+    <div class="filter-row2">
+      <select class="fselect" id="catFilter" onchange="state.category=this.value;render()">
+        <option value="all">모든 카테고리</option>
+        <option value="SMC">Smart Money (SMC)</option>
+        <option value="트렌드">트렌드 추종</option>
+        <option value="모멘텀">모멘텀</option>
+        <option value="볼륨">볼륨 분석</option>
+        <option value="오실레이터">오실레이터</option>
+        <option value="지지저항">지지/저항</option>
+        <option value="피보나치">피보나치</option>
+        <option value="변동성">변동성</option>
+      </select>
+      <select class="fselect" id="priceFilter" onchange="state.price=this.value;render()">
+        <option value="all">모든 가격</option>
+        <option value="free">무료</option>
+        <option value="u20">2만원 이하</option>
+        <option value="2050">2~5만원</option>
+        <option value="o50">5만원 이상</option>
+      </select>
+      <select class="fselect" id="sortFilter" onchange="state.sort=this.value;render()">
+        <option value="rating">평점 높은 순</option>
+        <option value="reviews">리뷰 많은 순</option>
+        <option value="price-asc">가격 낮은 순</option>
+        <option value="price-desc">가격 높은 순</option>
+        <option value="newest">최신 등록 순</option>
+      </select>
+      <span class="results-info">검색결과: <strong id="resultCount">12개</strong></span>
+    </div>
+  </div>
+
+  <!-- Featured -->
+  <div class="section-header">
+    <span class="section-title">🔥 인기 급상승</span>
+  </div>
+  <div class="featured-row" id="featuredRow"></div>
+
+  <!-- Grid -->
+  <div class="section-header">
+    <span class="section-title">📦 전체 지표</span>
+  </div>
+  <div class="cards-grid" id="cardsGrid"></div>
+  <div id="noResults" class="no-results" style="display:none">
+    <span class="nr-icon">🔍</span>
+    <p>검색 결과가 없습니다. 다른 키워드나 필터를 사용해보세요.</p>
+  </div>
+
+  <!-- Become Seller -->
+  <div class="become-seller">
+    <h3>내 지표를 팔아보세요</h3>
+    <p>직접 개발한 트레이딩 지표를 등록하고 전 세계 트레이더들에게 판매하세요.<br>무료 공개로 커뮤니티에 기여하거나, 유료로 수익을 창출할 수 있습니다.</p>
+    <div class="bs-features">
+      <div class="bsf"><span class="bsf-icon">💰</span><span class="bsf-lbl">직접 가격 설정</span></div>
+      <div class="bsf"><span class="bsf-icon">🌍</span><span class="bsf-lbl">글로벌 트레이더</span></div>
+      <div class="bsf"><span class="bsf-icon">⭐</span><span class="bsf-lbl">리뷰 & 평점</span></div>
+      <div class="bsf"><span class="bsf-icon">🔒</span><span class="bsf-lbl">안전한 거래</span></div>
+    </div>
+    <button class="btn-primary" onclick="openSellModal()">무료로 지표 등록하기 →</button>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>ScriptMarket · 트레이더가 만든 지표 마켓플레이스 · 모든 거래는 판매자와 구매자 간 직접 진행됩니다</p>
+</footer>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal" onclick="overlayClick(event,'detailModal')">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div id="mHdrContent"></div>
+      <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+  </div>
+</div>
+
+<!-- Sell Modal -->
+<div class="modal-overlay" id="sellModal" onclick="overlayClick(event,'sellModal')">
+  <div class="modal-box sell-box">
+    <div class="modal-hdr">
+      <div>
+        <h3 style="font-size:19px;font-weight:800;margin-bottom:4px;">지표 등록하기</h3>
+        <p style="font-size:13px;color:var(--txt2)">내가 만든 트레이딩 지표를 마켓플레이스에 등록하세요</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('sellModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">지표 이름 *</label>
+        <input class="form-input" type="text" placeholder="예: SmartMoney Tracker Pro">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">카테고리 *</label>
+          <select class="form-input fselect" style="appearance:none">
+            <option>SMC / Smart Money</option>
+            <option>트렌드 추종</option>
+            <option>모멘텀</option>
+            <option>볼륨 분석</option>
+            <option>오실레이터</option>
+            <option>지지/저항</option>
+            <option>피보나치</option>
+            <option>변동성</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">가격 (원)</label>
+          <div class="price-wrap">
+            <span class="price-sym">₩</span>
+            <input class="form-input" type="number" min="0" placeholder="0 = 무료">
+          </div>
+          <p class="form-hint">0원 설정 시 무료 공개</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">지원 플랫폼 *</label>
+        <div class="pcheck-row" id="pcheckRow">
+          <label class="pcheck"><input type="checkbox"> TradingView</label>
+          <label class="pcheck"><input type="checkbox"> MT4</label>
+          <label class="pcheck"><input type="checkbox"> MT5</label>
+          <label class="pcheck"><input type="checkbox"> cTrader</label>
+          <label class="pcheck"><input type="checkbox"> NinjaTrader</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">지표 설명 *</label>
+        <textarea class="form-input form-textarea" placeholder="지표의 기능, 사용법, 특징을 자세히 설명해주세요..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">주요 기능 (쉼표로 구분)</label>
+        <input class="form-input" type="text" placeholder="예: Order Block 감지, FVG 시각화, 실시간 알림">
+      </div>
+      <div class="form-group">
+        <label class="form-label">연락처 (이메일 또는 텔레그램)</label>
+        <input class="form-input" type="text" placeholder="예: trader@email.com 또는 @telegram_id">
+        <p class="form-hint">구매자가 연락할 수 있는 방법을 입력해주세요</p>
+      </div>
+      <div class="form-footer">
+        <button class="btn-secondary" onclick="closeModal('sellModal')">취소</button>
+        <button class="btn-primary" onclick="submitSell()">등록 신청하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+const DATA = [
+  {id:1,icon:'🧠',name:'SmartMoney Tracker Pro',
+   desc:'기관투자자의 주문 흐름을 실시간 추적. Order Block, Fair Value Gap, Break of Structure를 자동 감지합니다.',
+   long:'SMT Pro는 Smart Money Concepts(SMC) 기반의 종합 분석 도구입니다. 기관투자자들이 포지션을 쌓는 영역인 Order Block을 자동으로 감지하고, 미청산 공정가치 갭(FVG)을 시각화합니다. BOS(Break of Structure)와 CHoCH(Change of Character)를 실시간으로 감지하여 알림을 제공합니다.',
+   platforms:['TradingView'],cat:'SMC',price:49000,free:false,
+   rating:4.8,reviews:127,seller:'AlphaTrader_KR',sRating:4.9,sSales:312,
+   tags:['Order Block','Fair Value Gap','BOS','CHoCH'],
+   features:['Order Block 자동 감지 및 시각화','Fair Value Gap(FVG) 표시','Break of Structure / CHoCH 알림','스윙 하이/로우 자동 그리기','유동성 레벨 표시','실시간 알림 설정'],
+   featured:true,hot:true,newest:false,color:'blue',
+   rvs:[{a:'futures_kr',s:5,d:'2026-04-10',t:'SMC 개념을 이렇게 잘 구현한 지표는 처음 봤습니다. FVG 감지가 매우 정확합니다.'},
+        {a:'chart_wizard',s:5,d:'2026-03-28',t:'Order Block 레벨이 실제로 지지/저항으로 잘 작동합니다. 강력 추천!'},
+        {a:'swing_88',s:4,d:'2026-03-15',t:'기능은 훌륭한데 처음 설정이 조금 복잡합니다. 익숙해지면 매우 유용해요.'}]},
+
+  {id:2,icon:'📈',name:'Trend Strength Composite',
+   desc:'ADX, 이동평균, 볼린저 밴드를 결합한 복합 트렌드 강도 지표. 추세 방향과 강도를 한눈에 파악합니다.',
+   long:'ADX, 다중 이동평균, 볼린저 밴드 너비를 종합하여 현재 추세의 강도를 0~100 스케일로 표시합니다. 추세 전환 시점을 사전에 감지하는 EarlyWarning 시스템이 내장되어 있습니다. 완전 무료로 공개된 오픈소스 지표입니다.',
+   platforms:['TradingView','MT5'],cat:'트렌드',price:0,free:true,
+   rating:4.5,reviews:203,seller:'TrendMaster99',sRating:4.7,sSales:145,
+   tags:['ADX','이동평균','볼린저','오픈소스'],
+   features:['ADX + MA + BB 복합 신호','0~100 강도 스케일 표시','추세 전환 Early Warning 시스템','다중 타임프레임 지원','소스코드 공개 (Pine Script v5)'],
+   featured:true,hot:false,newest:false,color:'green',
+   rvs:[{a:'day_trader_cho',s:5,d:'2026-04-12',t:'무료인데 이 품질이라니 감사합니다. 제 메인 지표가 됐어요.'},
+        {a:'scalper_pro',s:4,d:'2026-04-01',t:'ADX 단독보다 훨씬 정확합니다. 무료로 풀어주셔서 감사해요.'}]},
+
+  {id:3,icon:'📊',name:'Volume Delta Pro',
+   desc:'캔들별 매수/매도 볼륨 차이(델타)를 분석하여 실시간 수급 불균형을 포착하는 고급 볼륨 지표입니다.',
+   long:'각 캔들 내에서 매수 볼륨과 매도 볼륨의 차이를 계산하여 순 매수/매도 압력을 시각화합니다. 누적 델타(Cumulative Delta) 차트로 추세 확인, 다이버전스 감지, 볼륨 클러스터 분석을 통해 기관 진입/청산 구간을 추정합니다.',
+   platforms:['TradingView'],cat:'볼륨',price:29000,free:false,
+   rating:4.7,reviews:54,seller:'VolumeKing_FX',sRating:4.8,sSales:98,
+   tags:['Volume Delta','수급분석','CVD','다이버전스'],
+   features:['캔들별 매수/매도 델타 계산','누적 델타(CVD) 차트 표시','볼륨 다이버전스 자동 감지','볼륨 클러스터 히트맵','실시간 알림 지원'],
+   featured:false,hot:true,newest:false,color:'gold',
+   rvs:[{a:'quant_kr',s:5,d:'2026-04-08',t:'CVD 다이버전스가 실제로 잘 작동합니다. 반전 포착률이 높아요.'},
+        {a:'btc_whale',s:4,d:'2026-03-20',t:'코인 시장에서 특히 유용합니다. 세력 움직임 파악에 좋아요.'}]},
+
+  {id:4,icon:'🎯',name:'Auto S/R Levels v3',
+   desc:'피봇 포인트, 스윙 하이/로우, 심리적 가격대를 자동 계산하여 지지/저항 레벨을 실시간 업데이트합니다.',
+   long:'Classic, Fibonacci, Camarilla, Woodie 4가지 피봇 포인트와 스윙 기반 지지/저항 레벨을 자동 계산합니다. 레벨 강도를 색상 등급으로 표시하고 가격이 레벨에 접근 시 알림을 발송합니다. MT4와 MT5 모두 지원합니다.',
+   platforms:['TradingView','MT4','MT5'],cat:'지지저항',price:19000,free:false,
+   rating:4.3,reviews:41,seller:'Support_Hunter',sRating:4.5,sSales:67,
+   tags:['지지저항','피봇','스윙','자동'],
+   features:['4가지 피봇 계산법 선택 가능','스윙 H/L 자동 감지','레벨 강도 색상 등급 표시','가격 접근 알림','MT4/MT5 동시 지원'],
+   featured:false,hot:false,newest:false,color:'purple',
+   rvs:[{a:'level_trader',s:5,d:'2026-03-30',t:'MT4에서도 완벽하게 작동합니다. 지지저항 자동화에 최고!'},
+        {a:'forex_kim',s:4,d:'2026-03-10',t:'피봇 포인트 정확도가 좋습니다. 가성비 좋은 지표입니다.'}]},
+
+  {id:5,icon:'🌊',name:'Multi-TF RSI Dashboard',
+   desc:'5개 타임프레임의 RSI를 동시에 한 화면에 표시. 다중 시간대 과매수/과매도 구간을 한눈에 파악합니다.',
+   long:'1분~월봉까지 5개 타임프레임의 RSI를 하나의 패널에 동시 표시합니다. 각 타임프레임별 과매수(70+)/과매도(30-) 구간을 색상으로 표시하고, 모든 타임프레임이 동일 방향일 때 강한 신호로 알림합니다. Pine Script v5 오픈소스입니다.',
+   platforms:['TradingView'],cat:'오실레이터',price:0,free:true,
+   rating:4.6,reviews:89,seller:'RSI_Master_Lee',sRating:4.6,sSales:0,
+   tags:['RSI','다중타임프레임','오실레이터','무료'],
+   features:['5개 TF 동시 표시 (1m~MN)','과매수/과매도 색상 알림','전 TF 동일 신호 감지 알림','RSI 설정값 커스텀 가능','소스코드 완전 공개'],
+   featured:true,hot:false,newest:false,color:'cyan',
+   rvs:[{a:'rsi_lover',s:5,d:'2026-04-14',t:'이런 게 필요했어요! 5개 TF 한눈에 보니 확신이 생깁니다.'},
+        {a:'swing_park',s:4,d:'2026-04-02',t:'무료인데 정말 유용합니다. 필수 지표로 사용 중입니다.'}]},
+
+  {id:6,icon:'🌀',name:'Fibonacci Auto-Draw Suite',
+   desc:'스윙 하이/로우를 자동 감지하고 피보나치 되돌림과 확장 레벨을 자동으로 그려주는 자동화 도구입니다.',
+   long:'알고리즘으로 유효한 스윙 포인트를 자동 감지하여 피보나치 되돌림(23.6%~78.6%)과 확장(127.2%~261.8%)을 자동으로 그립니다. 여러 스윙에 걸친 피보나치 컨플루언스 구간을 강조 표시합니다.',
+   platforms:['TradingView','MT5','cTrader'],cat:'피보나치',price:15000,free:false,
+   rating:4.4,reviews:67,seller:'Fib_Wizard',sRating:4.6,sSales:134,
+   tags:['피보나치','자동','되돌림','컨플루언스'],
+   features:['스윙 자동 감지 알고리즘','되돌림 + 확장 레벨 동시 표시','컨플루언스 구간 강조 표시','3개 플랫폼 동시 지원','레벨 투명도 및 색상 설정'],
+   featured:false,hot:false,newest:true,color:'purple',
+   rvs:[{a:'fib_trader',s:5,d:'2026-04-13',t:'피보나치를 수동으로 그리는 시간을 완전히 절약해줍니다.'},
+        {a:'ct_user',s:4,d:'2026-03-25',t:'cTrader 버전도 잘 작동합니다. 가성비 최고!'}]},
+
+  {id:7,icon:'💧',name:'Liquidity Sweep Detector',
+   desc:'스톱헌팅 구간과 유동성 풀을 사전에 감지. 기관이 소액 투자자의 스톱을 노리는 구간을 시각화합니다.',
+   long:'Equal Highs/Lows(유동성 풀)를 자동 감지하고 스윕 발생 시 즉시 알림을 보냅니다. 스윕 후 방향 전환(Liquidity Raid + Reversal) 패턴을 자동으로 마킹합니다. 코인, 외환, 주식 시장 모두에서 효과적으로 작동합니다.',
+   platforms:['TradingView'],cat:'SMC',price:79000,free:false,
+   rating:4.9,reviews:38,seller:'Liquidity_Ghost',sRating:5.0,sSales:89,
+   tags:['유동성','스톱헌팅','SMC','Equal HL'],
+   features:['Equal Highs/Lows 자동 감지','유동성 스윕 실시간 알림','스윕 후 반전 패턴 마킹','멀티 TF 유동성 레벨 표시','강도별 색상 등급화'],
+   featured:false,hot:true,newest:false,color:'red',
+   rvs:[{a:'smc_master',s:5,d:'2026-04-11',t:'유동성 스윕 감지율이 정말 높습니다. 비싼 가격이 이해됩니다.'},
+        {a:'hunt_stopper',s:5,d:'2026-04-05',t:'스톱헌팅 당하는 게 눈에 보이기 시작했습니다. 필수 지표입니다.'}]},
+
+  {id:8,icon:'⚡',name:'Volatility Squeeze v2',
+   desc:'볼린저 밴드와 켈트너 채널로 변동성 압축 구간을 감지. 강력한 브레이크아웃 직전 타이밍을 포착합니다.',
+   long:'볼린저 밴드가 켈트너 채널 내부로 들어오는 "스퀴즈" 상태를 감지합니다. 히스토그램으로 모멘텀 방향과 강도를 표시하며, 스퀴즈 해제 시 알림을 보냅니다. ATR 기반 변동성 필터가 내장되어 있습니다.',
+   platforms:['TradingView'],cat:'변동성',price:29000,free:false,
+   rating:4.6,reviews:91,seller:'BreakoutHunter',sRating:4.7,sSales:203,
+   tags:['스퀴즈','볼린저','켈트너','브레이크아웃'],
+   features:['볼린저 + 켈트너 스퀴즈 감지','모멘텀 히스토그램 표시','스퀴즈 해제 즉시 알림','ATR 변동성 필터 내장','다중 TF 스퀴즈 상태 표시'],
+   featured:false,hot:false,newest:false,color:'gold',
+   rvs:[{a:'breakout_kim',s:5,d:'2026-04-09',t:'스퀴즈 해제 직전 포지션 잡는데 완벽합니다. 수익률 올랐어요.'},
+        {a:'vol_pro',s:4,d:'2026-03-22',t:'TTM Squeeze보다 훨씬 개선된 버전입니다. 추천합니다.'}]},
+
+  {id:9,icon:'🏊',name:'Custom VWAP Bands',
+   desc:'일반 VWAP에 표준편차 밴드를 추가하고 앵커 포인트를 자유롭게 설정하는 고급 VWAP 분석 도구입니다.',
+   long:'VWAP에 1σ, 2σ, 3σ 표준편차 밴드를 추가합니다. 앵커 포인트를 세션 시작, 주간, 월간, 원하는 특정 시간으로 자유롭게 설정할 수 있습니다. 기관투자자들이 실제로 참고하는 VWAP 레벨을 개인 트레이더도 활용할 수 있게 합니다.',
+   platforms:['TradingView'],cat:'볼륨',price:35000,free:false,
+   rating:4.7,reviews:72,seller:'VWAP_Choi',sRating:4.8,sSales:156,
+   tags:['VWAP','밴드','앵커','기관'],
+   features:['1σ/2σ/3σ 표준편차 밴드 표시','앵커 포인트 자유 설정','세션/주간/월간/연간 VWAP','밴드 이탈 시 알림','색상 및 투명도 커스텀'],
+   featured:false,hot:false,newest:false,color:'blue',
+   rvs:[{a:'vwap_fan',s:5,d:'2026-04-07',t:'앵커 포인트 설정이 자유로워서 정말 유용합니다. 필수 지표입니다.'},
+        {a:'inst_kr',s:5,d:'2026-03-18',t:'기관 수준의 VWAP 분석이 가능해집니다. 강력 추천!'}]},
+
+  {id:10,icon:'🔭',name:'Divergence Scanner Pro',
+   desc:'RSI, MACD, 스토캐스틱, CCI 등 다중 오실레이터의 다이버전스를 자동으로 스캔합니다.',
+   long:'4가지 오실레이터(RSI, MACD, Stochastic, CCI)의 일반 다이버전스와 히든 다이버전스를 동시에 스캔합니다. 여러 오실레이터가 동시에 다이버전스를 보일 때 컨플루언스 스코어를 부여합니다.',
+   platforms:['TradingView','MT5'],cat:'오실레이터',price:59000,free:false,
+   rating:4.8,reviews:48,seller:'DivHunter',sRating:4.9,sSales:127,
+   tags:['다이버전스','RSI','MACD','자동스캔'],
+   features:['RSI/MACD/Stoch/CCI 동시 스캔','일반/히든 다이버전스 감지','컨플루언스 스코어링 시스템','강도별(약/중/강) 등급화','MT5 버전 포함'],
+   featured:false,hot:true,newest:false,color:'purple',
+   rvs:[{a:'div_master',s:5,d:'2026-04-13',t:'4개 오실레이터를 동시에 스캔해주니 놓치는 신호가 없어요.'},
+        {a:'reversal_pro',s:4,d:'2026-04-01',t:'컨플루언스 스코어링이 특히 유용합니다. 신호 신뢰도가 높아졌어요.'}]},
+
+  {id:11,icon:'🏗️',name:'Market Structure Auto',
+   desc:'고점/저점 변화(CHoCH)와 구조 이탈(BOS)을 자동 감지하여 시장 구조를 실시간으로 분석합니다.',
+   long:'가격 구조를 자동 분석하여 상승 구조(HH/HL), 하락 구조(LH/LL), 횡보 구조를 실시간으로 파악합니다. CHoCH와 BOS 발생 시 시각적 표시와 알림을 제공합니다. 스윙 포인트 강도를 자동으로 계산합니다.',
+   platforms:['TradingView'],cat:'SMC',price:45000,free:false,
+   rating:4.5,reviews:33,seller:'Structure_Analyst',sRating:4.6,sSales:78,
+   tags:['Market Structure','CHoCH','BOS','스윙'],
+   features:['상승/하락/횡보 구조 자동 분류','CHoCH 자동 감지 및 표시','BOS 방향 및 강도 표시','스윙 포인트 강도 계산','구조 변화 알림 기능'],
+   featured:false,hot:false,newest:true,color:'green',
+   rvs:[{a:'structure_kr',s:5,d:'2026-04-15',t:'시장 구조를 이렇게 깔끔하게 자동화한 지표는 처음 봅니다.'},
+        {a:'smc_newbie',s:4,d:'2026-04-08',t:'SMC 공부하면서 같이 사용하니 이해가 빠릅니다.'}]},
+
+  {id:12,icon:'🤖',name:'Algo Trend System v2',
+   desc:'다중 회귀 알고리즘 기반 추세 감지 시스템. MT4/5 EA와 연동하여 자동매매 신호로 활용할 수 있습니다.',
+   long:'다중 회귀 분석과 모멘텀 알고리즘을 결합한 트렌드 분류 시스템입니다. Bullish/Bearish/Neutral 3단계 추세를 색상 배경으로 표시하고, 추세 강도를 0~100으로 수치화합니다. MT4/MT5 EA와 연동 가능합니다.',
+   platforms:['MT4','MT5'],cat:'트렌드',price:39000,free:false,
+   rating:4.2,reviews:29,seller:'AlgoBot_Ha',sRating:4.4,sSales:55,
+   tags:['알고리즘','EA연동','자동매매','MT4'],
+   features:['다중 회귀 기반 추세 분류','3단계 추세 강도 시각화','추세 강도 0~100 스코어','MT4/MT5 EA 연동 지원','자동매매 신호 출력'],
+   featured:false,hot:false,newest:true,color:'blue',
+   rvs:[{a:'algo_ha',s:4,d:'2026-04-06',t:'EA와 연동이 잘 됩니다. 자동매매 시스템 구축에 활용하고 있습니다.'},
+        {a:'mt5_pro',s:4,d:'2026-03-28',t:'MT5 전용 지표가 부족한데 이 지표는 잘 작동합니다.'}]}
+];
+
+// ── COLOR MAP ──────────────────────────────────────────────────────────
+const CM = {
+  blue:  ['var(--blue2)','var(--blue)','linear-gradient(90deg,#4f8ef7,#a78bfa)'],
+  green: ['var(--green2)','var(--green)','linear-gradient(90deg,#00d09c,#4f8ef7)'],
+  gold:  ['var(--gold2)','var(--gold)','linear-gradient(90deg,#f5a623,#ff4d5e)'],
+  purple:['var(--purple2)','var(--purple)','linear-gradient(90deg,#a78bfa,#4f8ef7)'],
+  cyan:  ['var(--cyan2)','var(--cyan)','linear-gradient(90deg,#22d3ee,#4f8ef7)'],
+  red:   ['var(--red2)','var(--red)','linear-gradient(90deg,#ff4d5e,#a78bfa)'],
+};
+const gc = c => CM[c] || CM.blue;
+
+// ── STATE ──────────────────────────────────────────────────────────────
+const state = {search:'',platform:'all',category:'all',price:'all',sort:'rating'};
+
+// ── HELPERS ───────────────────────────────────────────────────────────
+const fmtP = i => i.free ? '무료' : '₩' + i.price.toLocaleString();
+const starsH = n => { const r=Math.round(n); return '★'.repeat(r)+'☆'.repeat(5-r); };
+
+function ptHtml(arr) {
+  const m = {
+    'TradingView':'<span class="ptag tv">TradingView</span>',
+    'MT4':'<span class="ptag mt4">MT4</span>',
+    'MT5':'<span class="ptag mt5">MT5</span>',
+    'cTrader':'<span class="ptag ct">cTrader</span>',
+    'NinjaTrader':'<span class="ptag nt">NinjaTrader</span>',
+  };
+  return arr.map(p => m[p] || `<span class="ptag">${p}</span>`).join('');
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────
+function filtered() {
+  let list = [...DATA];
+  if(state.search) {
+    const q = state.search.toLowerCase();
+    list = list.filter(i =>
+      i.name.toLowerCase().includes(q) ||
+      i.desc.toLowerCase().includes(q) ||
+      i.cat.toLowerCase().includes(q) ||
+      i.tags.some(t => t.toLowerCase().includes(q)) ||
+      i.platforms.some(p => p.toLowerCase().includes(q))
+    );
+  }
+  if(state.platform !== 'all') list = list.filter(i => i.platforms.includes(state.platform));
+  if(state.category !== 'all') list = list.filter(i => i.cat === state.category);
+  if(state.price === 'free')  list = list.filter(i => i.free);
+  if(state.price === 'u20')   list = list.filter(i => !i.free && i.price <= 20000);
+  if(state.price === '2050')  list = list.filter(i => !i.free && i.price > 20000 && i.price <= 50000);
+  if(state.price === 'o50')   list = list.filter(i => !i.free && i.price > 50000);
+  if(state.sort === 'rating')     list.sort((a,b) => b.rating - a.rating);
+  if(state.sort === 'reviews')    list.sort((a,b) => b.reviews - a.reviews);
+  if(state.sort === 'price-asc')  list.sort((a,b) => (a.free?0:a.price) - (b.free?0:b.price));
+  if(state.sort === 'price-desc') list.sort((a,b) => (b.free?0:b.price) - (a.free?0:a.price));
+  if(state.sort === 'newest')     list.sort((a,b) => (b.newest?1:0) - (a.newest?1:0));
+  return list;
+}
+
+// ── RENDER FEATURED ───────────────────────────────────────────────────
+function renderFeatured() {
+  const row = document.getElementById('featuredRow');
+  row.innerHTML = DATA.filter(i => i.featured).map(i => {
+    const [bg,,grad] = gc(i.color);
+    const badge = i.hot ? '<span class="badge-hot">HOT</span>' : '';
+    return `<div class="card featured-card" onclick="openDetail(${i.id})">
+      <div class="card-accent" style="background:${grad}"></div>${badge}
+      <div class="card-top">
+        <div class="card-icon" style="background:${bg}">${i.icon}</div>
+        <span class="card-price${i.free?' free':''}">${fmtP(i)}</span>
+      </div>
+      <div class="card-name">${i.name}</div>
+      <div class="card-desc">${i.desc}</div>
+      <div class="card-foot">
+        <span class="card-rating"><span class="stars">${starsH(i.rating)}</span> ${i.rating} (${i.reviews})</span>
+        <span class="card-seller-sm">@${i.seller}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER GRID ───────────────────────────────────────────────────────
+function render() {
+  const list = filtered();
+  const grid = document.getElementById('cardsGrid');
+  const noRes = document.getElementById('noResults');
+  document.getElementById('resultCount').textContent = list.length + '개';
+  if(!list.length) { grid.innerHTML=''; noRes.style.display='block'; return; }
+  noRes.style.display = 'none';
+  grid.innerHTML = list.map(i => {
+    const [bg,,grad] = gc(i.color);
+    const badge = i.hot ? '<span class="badge-hot">HOT</span>' : i.newest ? '<span class="badge-new">NEW</span>' : '';
+    return `<div class="card grid-card" onclick="openDetail(${i.id})">
+      <div class="card-accent" style="background:${grad}"></div>${badge}
+      <div class="gc-header">
+        <div class="gc-icon" style="background:${bg}">${i.icon}</div>
+        <div class="gc-meta">
+          <div class="gc-name">${i.name}</div>
+          <div class="gc-seller">@${i.seller}</div>
+        </div>
+      </div>
+      <div class="ptags">${ptHtml(i.platforms)}<span class="cat-tag">${i.cat}</span></div>
+      <div class="gc-desc">${i.desc}</div>
+      <div class="gc-foot">
+        <span class="gc-price${i.free?' free':''}">${fmtP(i)}</span>
+        <span class="card-rating"><span class="stars" style="font-size:11px">${starsH(i.rating)}</span> ${i.rating}</span>
+        <button class="card-buy${i.free?' free':''}">${i.free?'무료 받기':'구매하기'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PLATFORM FILTER ───────────────────────────────────────────────────
+function setPlatform(val, el) {
+  state.platform = val;
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function handleSearch(val) { state.search = val; render(); }
+
+// ── DETAIL MODAL ──────────────────────────────────────────────────────
+function openDetail(id) {
+  const i = DATA.find(x => x.id === id);
+  if(!i) return;
+  const [bg, fg, grad] = gc(i.color);
+
+  document.getElementById('mHdrContent').innerHTML = `
+    <div class="modal-top">
+      <div class="m-icon" style="background:${bg}">${i.icon}</div>
+      <div class="m-info">
+        <h3>${i.name}</h3>
+        <div class="m-seller">
+          <span>@${i.seller}</span>
+          <span class="seller-badge">★ ${i.sRating} · ${i.sSales}건 판매</span>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('mBody').innerHTML = `
+    <div class="ptags" style="margin-top:12px">${ptHtml(i.platforms)}<span class="cat-tag">${i.cat}</span></div>
+    <div class="preview-ph">
+      <span class="ph-icon">📊</span>
+      <p>차트 미리보기</p>
+      <p style="font-size:11px;color:var(--txt3)">실제 지표 스크린샷이 여기에 표시됩니다</p>
+    </div>
+    <div class="modal-stats">
+      <div class="mstat"><span class="mstat-val" style="color:var(--gold)">${i.rating}</span><span class="mstat-lbl">평균 평점</span></div>
+      <div class="mstat"><span class="mstat-val" style="color:var(--blue)">${i.reviews}</span><span class="mstat-lbl">리뷰 수</span></div>
+      <div class="mstat"><span class="mstat-val" style="color:var(--green)">${i.sSales}</span><span class="mstat-lbl">총 판매</span></div>
+    </div>
+    <div class="sec-title">지표 설명</div>
+    <div class="m-desc">${i.long}</div>
+    <div class="sec-title">주요 기능</div>
+    <div class="feat-list">${i.features.map(f=>`<div class="feat-item"><div class="feat-dot" style="background:${fg}"></div><span>${f}</span></div>`).join('')}</div>
+    <div class="sec-title">태그</div>
+    <div class="tag-list">${i.tags.map(t=>`<span class="tag-chip">#${t}</span>`).join('')}</div>
+    <div class="sec-title">사용자 리뷰</div>
+    <div class="review-list">${i.rvs.map(r=>`
+      <div class="review-item">
+        <div class="review-hdr">
+          <span class="review-author">@${r.a}</span>
+          <div class="review-meta"><span class="review-stars">${'★'.repeat(r.s)}</span><span class="review-date">${r.d}</span></div>
+        </div>
+        <p class="review-text">${r.t}</p>
+      </div>`).join('')}
+    </div>
+    <div class="buy-box">
+      <div>
+        <div class="buy-price${i.free?' free':''}">${fmtP(i)}</div>
+        <div class="buy-sub">${i.free ? '무료 공개 지표' : '일회성 결제 · 평생 이용'}</div>
+      </div>
+      <div class="buy-actions">
+        <button class="btn-secondary" onclick="contactSeller('${i.seller}')">판매자 문의</button>
+        <button class="btn-primary${i.free?' free':''}" onclick="handleBuy(${i.id})">${i.free?'무료 다운로드':'구매하기'}</button>
+      </div>
+    </div>`;
+
+  openModal('detailModal');
+}
+
+function handleBuy(id) {
+  const i = DATA.find(x => x.id === id);
+  closeModal('detailModal');
+  showToast(i.free ? `✅ ${i.name} 다운로드가 신청되었습니다.` : `🛒 ${i.name} 구매가 신청되었습니다. 판매자가 곧 연락드립니다.`);
+}
+
+function contactSeller(seller) {
+  closeModal('detailModal');
+  showToast(`📩 @${seller}에게 문의가 전달되었습니다.`);
+}
+
+// ── SELL MODAL ────────────────────────────────────────────────────────
+function openSellModal() { openModal('sellModal'); }
+function submitSell() {
+  closeModal('sellModal');
+  showToast('✅ 지표 등록 신청이 접수되었습니다! 검토 후 24시간 내 연락드립니다.');
+}
+
+// ── MODAL UTILS ───────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function overlayClick(e, id) { if(e.target === document.getElementById(id)) closeModal(id); }
+document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeModal('detailModal'); closeModal('sellModal'); }});
+
+// ── TOAST ─────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── PLATFORM CHECK STYLING ────────────────────────────────────────────
+document.querySelectorAll('.pcheck input').forEach(inp => {
+  inp.addEventListener('change', function() {
+    this.closest('.pcheck').classList.toggle('on', this.checked);
+  });
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────
+renderFeatured();
+render();
+</script>
+</body>
+</html>
